@@ -6,10 +6,38 @@ import {
   CHAT_SCROLL_ABOVE_DOCK_GAP_PX,
   WORKSPACE_CHROME_ROW_TOP_PX,
 } from '../constants/layout';
-import { ChevronRight } from 'lucide-react';
+import { Bug, ChevronRight, Hammer, RefreshCw, Telescope } from 'lucide-react';
 import { ChatMessage, ClutchRunStatus, HybridExecutionPayload, OutputEvent } from '../types';
 import { useLanguage } from './LanguageContext';
 import { ChatInputBar, type Attachment, type PendingChatMessage } from './ChatInputBar';
+
+/** Codex-style welcome cards — click prefills the chat input. */
+const WELCOME_SUGGESTIONS = [
+  {
+    label: 'Explore and understand the code',
+    prompt: 'Explore this codebase and explain the overall architecture.',
+    Icon: Telescope,
+    color: 'text-blue-500',
+  },
+  {
+    label: 'Build new features, apps or tools',
+    prompt: 'Build a new feature: ',
+    Icon: Hammer,
+    color: 'text-violet-500',
+  },
+  {
+    label: 'Review code and propose changes',
+    prompt: 'Review the recent code changes and propose improvements.',
+    Icon: RefreshCw,
+    color: 'text-emerald-500',
+  },
+  {
+    label: 'Fix issues and failures',
+    prompt: 'Find and fix a bug or failing behavior.',
+    Icon: Bug,
+    color: 'text-orange-500',
+  },
+] as const;
 import { BTN_DANGER_SM, BTN_PRIMARY, BTN_SECONDARY, BTN_SM, BTN_SUCCESS_SM } from './ui/buttonStyles';
 import { LegacyIcon } from './ui/LegacyIcon';
 import type { SessionRecord } from '../services/runApi';
@@ -1133,23 +1161,33 @@ export const ChatFeed: React.FC<ChatFeedProps> = ({
           </div>
         ) : null}
         {workspaceViewMode === 'chat' && showEmptyState && (
-          <div className="flex flex-col items-center justify-center text-center py-16 px-6 space-y-5">
+          <div className="flex flex-col items-center justify-center text-center py-16 px-6 space-y-8">
             <div className="w-14 h-14 rounded-2xl bg-surface-container-low border border-outline-variant/40 flex items-center justify-center">
               <LegacyIcon name={isMultiAgent ? "hub" : "smart_toy"} className="text-[28px] text-on-surface-variant" />
             </div>
-            <div className="space-y-2 max-w-md">
-              <h2
-                data-testid="chat-supervised-title"
-                className="text-lg font-bold text-on-surface tracking-tight"
-              >
-                {isMultiAgent ? t('Start a supervised session') : t('Start a single agent session')}
-              </h2>
-              <p className="text-sm text-on-surface-variant leading-relaxed">
-                {isMultiAgent
-                  ? t('Select a workspace and start a workflow, or type an instruction below. Clutch will orchestrate AI Agents and ask for your approval when needed.')
-                  : t('Select a workspace and type an instruction below to chat with the agent directly.')
-                }
-              </p>
+            <h2
+              data-testid="chat-supervised-title"
+              className="text-3xl font-bold text-on-surface tracking-tight"
+            >
+              {t('What should we do in {name}?').split('{name}')[0]}
+              <span className="underline underline-offset-4 decoration-outline-variant">
+                {workspacePath?.split(/[\\/]/).pop() || 'Clutch'}
+              </span>
+              {t('What should we do in {name}?').split('{name}')[1] ?? ''}
+            </h2>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 w-full max-w-3xl">
+              {WELCOME_SUGGESTIONS.map((s) => (
+                <button
+                  key={s.label}
+                  type="button"
+                  data-testid="chat-welcome-suggestion"
+                  onClick={() => setInputValue(t(s.prompt))}
+                  className="flex flex-col items-start gap-6 rounded-2xl border border-outline-variant/40 bg-surface-container-lowest p-4 text-left hover:shadow-md hover:bg-surface-container-low transition-all"
+                >
+                  <s.Icon className={`w-5 h-5 ${s.color}`} strokeWidth={1.75} />
+                  <span className="text-sm font-semibold text-on-surface leading-snug">{t(s.label)}</span>
+                </button>
+              ))}
             </div>
             <div className="flex flex-wrap items-center justify-center gap-2">
               {workspacePickError && (
