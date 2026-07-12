@@ -230,6 +230,15 @@ def set_workspace(path: str) -> dict[str, str]:
     return add_workspace(path)
 
 
+def workspace_path_by_id(workspace_id: str) -> str | None:
+    """Path for a specific workspace, independent of which one is active."""
+    _ensure_loaded()
+    entry = _workspaces.get(workspace_id)
+    if entry is None or not is_workspace_path_available(entry["workspace_path"]):
+        return None
+    return entry["workspace_path"]
+
+
 def get_workspace() -> dict[str, str] | None:
     _ensure_loaded()
     if _active_id is None:
