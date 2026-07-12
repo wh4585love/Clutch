@@ -893,8 +893,8 @@ export function AgentManager({
               {/* 🧩 MODULE 1: Identity & Engine */}
               <div className="p-4 bg-neutral-50/30 border border-neutral-200/60 rounded-xl space-y-3.5 animate-fade-in">
                 <div className="flex items-center gap-1.5 pb-2 border-b border-neutral-200/40">
-                  <span className="text-[9.5px] font-extrabold text-neutral-800 bg-neutral-100 border border-neutral-200 px-1.5 py-0.2 rounded font-mono tracking-wider uppercase">{t('Module 1')}</span>
-                  <span className="text-[10.5px] font-extrabold text-[#111111] font-mono tracking-wide uppercase">{t('Identity & Driving Engine')}</span>
+                  <span className="text-[10px] font-semibold text-neutral-500 bg-neutral-100 px-2 py-0.5 rounded-full">{t('Module 1')}</span>
+                  <span className="text-xs font-semibold text-neutral-900">{t('Identity & Driving Engine')}</span>
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pb-1">
@@ -1047,8 +1047,8 @@ export function AgentManager({
               {/* 🧩 MODULE 2: Persona & Soul (System Prompt) */}
               <div className="p-4 bg-neutral-50/30 border border-neutral-200/60 rounded-xl space-y-2.5">
                 <div className="flex items-center gap-1.5 pb-2 border-b border-neutral-200/40">
-                  <span className="text-[9.5px] font-extrabold text-neutral-800 bg-neutral-100 border border-neutral-200 px-1.5 py-0.2 rounded font-mono tracking-wider uppercase">{t('Module 2')}</span>
-                  <span className="text-[10.5px] font-extrabold text-[#111111] font-mono tracking-wide uppercase">{t('System Persona & Soul')}</span>
+                  <span className="text-[10px] font-semibold text-neutral-500 bg-neutral-100 px-2 py-0.5 rounded-full">{t('Module 2')}</span>
+                  <span className="text-xs font-semibold text-neutral-900">{t('System Persona & Soul')}</span>
                 </div>
                 
                 <div className="space-y-1.5">
@@ -1070,8 +1070,8 @@ export function AgentManager({
               <div className="p-4 bg-neutral-50/30 border border-neutral-200/60 rounded-xl space-y-4">
                 <div className="flex items-center justify-between pb-2 border-b border-neutral-200/40">
                   <div className="flex items-center gap-1.5">
-                    <span className="text-[9.5px] font-extrabold text-neutral-800 bg-neutral-100 border border-neutral-200 px-1.5 py-0.2 rounded font-mono tracking-wider uppercase">{t('Module 3')}</span>
-                    <span className="text-[10.5px] font-extrabold text-[#111111] font-mono tracking-wide uppercase">{t('Attach Agent Skills')}</span>
+                    <span className="text-[10px] font-semibold text-neutral-500 bg-neutral-100 px-2 py-0.5 rounded-full">{t('Module 3')}</span>
+                    <span className="text-xs font-semibold text-neutral-900">{t('Attach Agent Skills')}</span>
                   </div>
                   {capabilityTier === 'full' ? (
                     <span className="text-[8.5px] uppercase font-mono bg-neutral-100 text-neutral-700 border border-neutral-200/60 px-2 py-0.5 rounded">{t('Local-First')}</span>
@@ -1088,8 +1088,8 @@ export function AgentManager({
               {/* 🧩 MODULE 4: Bind MCP Hub Servers */}
               <div className="p-4 bg-neutral-50/30 border border-neutral-200/60 rounded-xl space-y-3">
                 <div className="flex items-center gap-1.5 pb-2 border-b border-neutral-200/40">
-                  <span className="text-[9.5px] font-extrabold text-neutral-800 bg-neutral-100 border border-neutral-200 px-1.5 py-0.2 rounded font-mono tracking-wider uppercase">{t('Module 4')}</span>
-                  <span className="text-[10.5px] font-extrabold text-[#111111] font-mono tracking-wide uppercase">{t('MCP Hub Server Bindings')}</span>
+                  <span className="text-[10px] font-semibold text-neutral-500 bg-neutral-100 px-2 py-0.5 rounded-full">{t('Module 4')}</span>
+                  <span className="text-xs font-semibold text-neutral-900">{t('MCP Hub Server Bindings')}</span>
                 </div>
 
                 {capabilityTier === 'full' ? (
@@ -1102,8 +1102,8 @@ export function AgentManager({
               {/* 🧩 MODULE 5: Deliverables Output Constraints */}
               <div className="p-4 bg-neutral-50/30 border border-neutral-200/60 rounded-xl space-y-3">
                 <div className="flex items-center gap-1.5 pb-2 border-b border-neutral-200/40">
-                  <span className="text-[9.5px] font-extrabold text-neutral-800 bg-neutral-100 border border-neutral-200 px-1.5 py-0.2 rounded font-mono tracking-wider uppercase">{t('Module 5')}</span>
-                  <span className="text-[10.5px] font-extrabold text-[#111111] font-mono tracking-wide uppercase">{t('Deliverables Config & State Update Rules')}</span>
+                  <span className="text-[10px] font-semibold text-neutral-500 bg-neutral-100 px-2 py-0.5 rounded-full">{t('Module 5')}</span>
+                  <span className="text-xs font-semibold text-neutral-900">{t('Deliverables Config & State Update Rules')}</span>
                 </div>
 
                 <UnderDevelopmentNotice variant="compact" />
