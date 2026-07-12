@@ -19,7 +19,7 @@ Run the environment self-check first:
 | pnpm | ≥ 9 | Repo locks `9.15.0` via `packageManager` |
 | Python | ≥ 3.11 | Orchestrator sidecar |
 | [uv](https://docs.astral.sh/uv/) | latest stable | Installs orchestrator venv |
-| Rust (stable) | latest | Required only for `pnpm tauri build` |
+| Rust (stable) | ≥ 1.85 | Required for `pnpm tauri:dev` and `pnpm tauri build`; dependencies use edition 2024 |
 
 ## 1. Clone and install dependencies
 
@@ -35,6 +35,12 @@ In PowerShell, use `corepack pnpm` if `pnpm` is not already on `PATH`; replace t
 ## 2. Development workflows
 
 ### Option A — Tauri desktop (recommended)
+
+First run only — build the sidecar binary (`tauri.conf.json` `externalBin` requires it at compile time, even though dev spawns the sidecar via `uv` directly):
+
+```bash
+node scripts/run-build-sidecar.mjs
+```
 
 Starts Vite, Tauri shell, and the Python sidecar (dev port **8124**):
 

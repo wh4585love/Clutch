@@ -75,9 +75,14 @@ def resolve_uv() -> str:
     return found
 
 
+# Bypass HTTP(S)_PROXY env vars: local proxies rarely route loopback and would
+# make this readiness probe fail even though Vite is up.
+_LOCAL_OPENER = urllib.request.build_opener(urllib.request.ProxyHandler({}))
+
+
 def vite_ready() -> bool:
     try:
-        with urllib.request.urlopen(VITE_URL, timeout=1.0) as response:
+        with _LOCAL_OPENER.open(VITE_URL, timeout=1.0) as response:
             return 200 <= response.status < 500
     except (OSError, urllib.error.URLError):
         return False
@@ -135,7 +140,23 @@ def wait_for_vite(proc: subprocess.Popen[bytes] | None) -> None:
     raise TimeoutError(f"Timed out waiting for Vite on {VITE_URL}. See {VITE_LOG}.")
 
 
+def sidecar_binary_present() -> bool:
+    """tauri.conf.json externalBin needs binaries/orchestrator-<triple> at
+    compile time even though dev spawns the sidecar via uv directly."""
+    return any((DESKTOP / "src-tauri" / "binaries").glob("orchestrator-*"))
+
+
 def main() -> int:
+    if not sidecar_binary_present():
+        print(
+            "[tauri-dev] Missing sidecar binary in apps/desktop/src-tauri/binaries/\n"
+            "[tauri-dev] (tauri.conf.json externalBin requires it at compile time, "
+            "even in dev — cargo would fail after several minutes otherwise).\n"
+            "[tauri-dev] Run once: node scripts/run-build-sidecar.mjs",
+            file=sys.stderr,
+        )
+        return 1
+
     proc: subprocess.Popen[bytes] | None = None
     if vite_ready():
         print(f"[tauri-dev] Reusing existing Vite on {VITE_URL}")
