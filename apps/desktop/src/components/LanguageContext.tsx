@@ -16,6 +16,8 @@ const zhTranslations: Record<string, string> = {
   // Navigation & Sidebar
   "New Chat": "新建会话",
   "Custom tool": "自定义工具",
+  "Midnight": "午夜黑",
+  "Deep charcoal panels with soft high-contrast type for late-night sessions.": "深炭色面板配柔和高对比文字，适合深夜工作。",
   "Please enter Agent Name": "请填写 Agent 名称",
   "Please select an Ollama model": "请选择一个 Ollama 模型",
   "Register a CLI from your PATH (e.g. claude-proxy) and route it through a built-in engine recipe.": "注册 PATH 里的任意 CLI（如 claude-proxy），复用内置引擎的调用配方进行路由。",
@@ -888,7 +890,6 @@ const zhTranslations: Record<string, string> = {
   "Install the opencode CLI on PATH to switch models from Clutch.": "请将 opencode CLI 加入 PATH，以便在 Clutch 中切换模型。",
   "Free": "免费",
   "Use model": "使用此模型",
-  "Failed to switch model.": "切换模型失败。",
   "CC Switch providers": "CC Switch 提供方",
   "CC Switch app data detected. Install the cc-switch CLI on PATH to switch providers from Clutch, or switch in the CC Switch desktop app.": "已检测到 CC Switch 应用数据。若要从 Clutch 切换提供方，请将 cc-switch CLI 加入 PATH，或在 CC Switch 桌面应用中切换。",
   "Install the cc-switch CLI on PATH to switch providers from Clutch, or use the CC Switch desktop app.": "请将 cc-switch CLI 加入 PATH 以便在 Clutch 中切换提供方，或使用 CC Switch 桌面应用。",

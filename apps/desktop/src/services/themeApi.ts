@@ -1,7 +1,7 @@
 import { SIDECAR_BASE as BASE, sidecarFetch } from './sidecarUrl';
 import { DEFAULT_FONT_SIZE, isAppFontSize, type AppFontSize } from './fontSizePreference';
 
-export const THEME_PRESET_IDS = ['pristine-light', 'nordic-frost', 'amber-warm'] as const;
+export const THEME_PRESET_IDS = ['pristine-light', 'nordic-frost', 'amber-warm', 'midnight'] as const;
 export type ThemePresetId = (typeof THEME_PRESET_IDS)[number];
 export type AppLanguage = 'en' | 'zh';
 

@@ -108,7 +108,8 @@ function MainLayout() {
   const hostOs = useHostOs();
   const isWindows = isWindowsHost(hostOs);
   const { state: clutchState } = useClutchState();
-  const [appVersion, setAppVersion] = useState<string>('1.0.0');
+  // Fallback for browser dev where Tauri getVersion() is unavailable.
+  const [appVersion, setAppVersion] = useState<string>(__APP_VERSION__);
 
   useEffect(() => {
     if (isTauri()) {
@@ -1716,6 +1717,20 @@ function MainLayout() {
 
   const currentThemeObj = THEME_PRESETS.find(t => t.id === themeId) || THEME_PRESETS[0];
   const themeVars = currentThemeObj.variables;
+
+  // Portaled overlays (FullscreenModalOverlay etc.) render outside the root
+  // div, so theme variables must also live on <html> for them to inherit.
+  useEffect(() => {
+    const root = document.documentElement;
+    for (const [key, value] of Object.entries(themeVars)) {
+      root.style.setProperty(key, value);
+    }
+    return () => {
+      for (const key of Object.keys(themeVars)) {
+        root.style.removeProperty(key);
+      }
+    };
+  }, [themeVars]);
 
   const activeSession = sessions.find(s => s.run_id === sessionRunId);
   const sessionTitle = activeSession ? (activeSession.title || activeSession.workflow_id || activeSession.run_id) : '';

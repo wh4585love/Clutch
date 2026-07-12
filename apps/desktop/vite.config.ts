@@ -2,12 +2,16 @@ import tailwindcss from '@tailwindcss/vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
 import { defineConfig } from 'vitest/config';
+import pkg from './package.json';
 
 export default defineConfig(({ command }) => {
   const isDevServer = command === 'serve';
   return {
     // Dev (tauri dev + vite) must use absolute paths; production DMG needs relative assets.
     base: isDevServer ? '/' : './',
+    define: {
+      __APP_VERSION__: JSON.stringify(pkg.version),
+    },
     plugins: [react(), tailwindcss()],
     test: {
       environment: 'node',
