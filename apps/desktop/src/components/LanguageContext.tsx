@@ -16,6 +16,8 @@ const zhTranslations: Record<string, string> = {
   // Navigation & Sidebar
   "New Chat": "新建会话",
   "Custom tool": "自定义工具",
+  "Please enter Agent Name": "请填写 Agent 名称",
+  "Please select an Ollama model": "请选择一个 Ollama 模型",
   "Register a CLI from your PATH (e.g. claude-proxy) and route it through a built-in engine recipe.": "注册 PATH 里的任意 CLI（如 claude-proxy），复用内置引擎的调用配方进行路由。",
   "Display name": "显示名称",
   "Binary name or path": "二进制名或路径",

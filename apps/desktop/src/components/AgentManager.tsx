@@ -155,6 +155,7 @@ export function AgentManager({
   });
   const [isGeneratingPrompt, setIsGeneratingPrompt] = useState(false);
   const [promptGenerateError, setPromptGenerateError] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const toggleModule = (moduleNumber: number) => {
     setExpandedModules((prev) => ({ ...prev, [moduleNumber]: !prev[moduleNumber] }));
@@ -329,6 +330,7 @@ export function AgentManager({
     setIsSkillsAttachOpen(false);
     setExpandedModules({ 3: false, 4: false, 5: false });
     setPromptGenerateError(null);
+    setSaveError(null);
     setIsModalOpen(true);
   };
 
@@ -352,6 +354,7 @@ export function AgentManager({
     setIsSkillsAttachOpen(false);
     setExpandedModules({ 3: false, 4: false, 5: false });
     setPromptGenerateError(null);
+    setSaveError(null);
     setIsModalOpen(true);
   };
 
@@ -403,14 +406,15 @@ export function AgentManager({
 
   const handleSave = () => {
     if (!name.trim()) {
-      console.warn('Please enter Agent Name');
+      setSaveError(t('Please enter Agent Name'));
       return;
     }
 
     if (agentType === 'ollama-cli' && !ollamaModel.trim()) {
-      console.warn('Please select an Ollama model');
+      setSaveError(t('Please select an Ollama model'));
       return;
     }
+    setSaveError(null);
 
     const todayStr = new Date().toISOString().replace('T', ' ').substring(0, 16);
 
@@ -1161,6 +1165,11 @@ export function AgentManager({
 
             {/* Modal Actions */}
             <div className="h-14 border-t border-neutral-100 flex items-center justify-end px-5 gap-2.5 bg-neutral-50/30 flex-shrink-0">
+              {saveError && (
+                <p className="text-[11px] font-semibold text-red-600 mr-auto" role="alert">
+                  {saveError}
+                </p>
+              )}
               <button
                 onClick={() => setIsModalOpen(false)}
                 className={BTN_GHOST}
