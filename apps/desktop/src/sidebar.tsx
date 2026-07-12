@@ -450,7 +450,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                           }`
                         : `flex items-center justify-between p-2 ${
                             isActiveSession
-                              ? 'bg-surface-bright shadow-sm text-on-surface-variant/80 font-normal border-outline-variant/40'
+                              ? 'bg-surface-bright shadow-sm text-on-surface font-medium border-outline-variant/40'
                               : 'border-transparent text-on-surface-variant hover:bg-surface-bright hover:text-on-surface'
                           }`
                     }`}
@@ -496,7 +496,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       </>
                     ) : (
                       <>
-                        <span className="flex items-center gap-1.5 min-w-0">
+                        <span className="flex flex-1 items-center gap-1.5 min-w-0">
                           {isRunning ? (
                             <LegacyIcon
                               name="progress_activity"
@@ -504,11 +504,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
                               aria-hidden
                             />
                           ) : null}
-                          <span className="text-[12.5px] text-on-surface-variant/80 truncate max-w-[130px]">
+                          <span className="text-[12.5px] truncate">
                             {sessionLabel(session)}
                           </span>
                         </span>
-                        <span className="text-[9px] font-mono text-on-surface-variant/70 flex-shrink-0">
+                        <span className="ml-2 text-[10px] text-on-surface-variant/60 flex-shrink-0">
                           {formatRelativeTime(session.started_at)}
                         </span>
                       </>
