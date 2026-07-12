@@ -26,6 +26,7 @@ import { getAgentCapabilityTier } from '../services/agentCapabilityTiers';
 import { AgentNativeCapabilityHint } from './AgentNativeCapabilityHint';
 import { AgentCliModelHint } from './AgentCliModelHint';
 import { FullscreenModalOverlay } from './ui/FullscreenModalOverlay';
+import { SettingsSelect } from './ui/SettingsSelect';
 
 export function AgentLogo({
   name,
@@ -922,17 +923,14 @@ export function AgentManager({
                         </p>
                       </div>
                     ) : (
-                      <select
+                      <SettingsSelect
                         value={agentType}
-                        onChange={(e) => setAgentType(e.target.value as AgentTypeId)}
-                        className="w-full px-3 py-1.5 text-xs border border-neutral-200 focus:outline-none focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900/20 bg-white rounded-lg font-sans text-neutral-800"
-                      >
-                        {agentTypeOptions.map((option) => (
-                          <option key={option.id} value={option.id}>
-                            {option.label}
-                          </option>
-                        ))}
-                      </select>
+                        onChange={(value) => setAgentType(value as AgentTypeId)}
+                        options={agentTypeOptions.map((option) => ({
+                          value: option.id,
+                          label: option.label,
+                        }))}
+                      />
                     )}
                     {modalMode !== 'edit' && agentTypeOptions.length === 1 && (
                       <p className="text-[9.5px] text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mt-2 leading-relaxed">
@@ -952,20 +950,23 @@ export function AgentManager({
                         {t('No models configured yet. Add API keys or image/video models under Settings → Models first.')}
                       </p>
                     ) : (
-                      <select
+                      <SettingsSelect
                         value={modelId}
-                        onChange={(e) => setModelId(e.target.value)}
-                        className="w-full px-3 py-1.5 text-xs border border-neutral-200 focus:outline-none focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900/20 bg-white rounded-lg font-mono text-neutral-800"
-                      >
-                        <option value="">{t('Use global default model')}</option>
-                        {clutchModels.map((model) => (
-                          <option key={model.id} value={model.id}>
-                            {model.name}
-                            {model.modelKind === 'image' ? ` (${t('Image')})` : ''}
-                            {model.modelKind === 'video' ? ` (${t('Video')})` : ''}
-                          </option>
-                        ))}
-                      </select>
+                        onChange={setModelId}
+                        options={[
+                          { value: '', label: t('Use global default model') },
+                          ...clutchModels.map((model) => ({
+                            value: model.id,
+                            label: `${model.name}${
+                              model.modelKind === 'image'
+                                ? ` (${t('Image')})`
+                                : model.modelKind === 'video'
+                                  ? ` (${t('Video')})`
+                                  : ''
+                            }`,
+                          })),
+                        ]}
+                      />
                     )}
                     <p className="text-[9.5px] text-neutral-400 leading-relaxed">
                       {t('Clutch agents run on Sidecar models (chat, image, or video). Leave empty to follow the global model in chat.')}
@@ -1010,17 +1011,11 @@ export function AgentManager({
                          )}
                        </div>
                      ) : (
-                       <select
+                       <SettingsSelect
                          value={ollamaModel}
-                         onChange={(e) => setOllamaModel(e.target.value)}
-                         className="w-full px-3 py-1.5 text-xs border border-neutral-200 focus:outline-none focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900/20 bg-white rounded-lg font-mono text-neutral-800"
-                       >
-                         {ollamaModels.map((model) => (
-                           <option key={model} value={model}>
-                             {model}
-                           </option>
-                         ))}
-                       </select>
+                         onChange={setOllamaModel}
+                         options={ollamaModels.map((model) => ({ value: model, label: model }))}
+                       />
                      )}
                      <p className="text-[9.5px] text-neutral-400 leading-relaxed">
                        {t('Select which locally installed Ollama model this agent uses at runtime.')}
