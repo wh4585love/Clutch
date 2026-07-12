@@ -412,3 +412,59 @@ def test_auto_configure_cli_via_llm(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 
+
+
+class TestCustomTools:
+    """Custom user-registered CLI tools (e.g. a claude proxy wrapper)."""
+
+    @pytest.fixture
+    def custom_env(
+        self, tools_config: Path, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> Path:
+        monkeypatch.setenv("CLUTCH_STORAGE_DIR", str(tmp_path / "storage"))
+        monkeypatch.setattr(
+            "src.tools_status.shutil.which",
+            lambda binary: "/usr/local/bin/claude-proxy" if binary == "claude-proxy" else None,
+        )
+        return tools_config
+
+    def test_add_list_route_remove_roundtrip(self, custom_env: Path) -> None:
+        from src.engine_router import CLI_ROUTING_CONFIGS
+        from src.tools_status import add_custom_tool, remove_custom_tool
+
+        result = add_custom_tool("Claude Proxy", "claude-proxy", "claude-cli")
+        tool_id = result["id"]
+        assert tool_id == "custom-claude-proxy"
+        assert result["path"] == "/usr/local/bin/claude-proxy"
+
+        try:
+            # Visible, connected, and registered for routing
+            tools = {t["id"]: t for t in list_tools_status(include_all=True)}
+            assert tool_id in tools
+            assert tools[tool_id]["custom"] is True
+            assert tools[tool_id]["connected"] is True
+            assert tools[tool_id]["registered"] is True
+            assert resolve_agent_type_for_tool(tool_id) == tool_id
+
+            # Routing recipe cloned from claude-cli with overridden binary
+            config = CLI_ROUTING_CONFIGS[tool_id]
+            assert config["binary_name"] == "claude-proxy"
+            assert config["prompt_flag"] == CLI_ROUTING_CONFIGS["claude-cli"]["prompt_flag"]
+
+            # Duplicate rejected
+            with pytest.raises(ValueError):
+                add_custom_tool("Claude Proxy", "claude-proxy", "claude-cli")
+        finally:
+            remove_custom_tool(tool_id)
+
+        assert tool_id not in CLI_ROUTING_CONFIGS
+        assert all(t["id"] != tool_id for t in list_tools_status(include_all=True))
+        assert tool_id not in load_connected_ids()
+
+    def test_add_rejects_missing_binary_and_unknown_engine(self, custom_env: Path) -> None:
+        from src.tools_status import add_custom_tool
+
+        with pytest.raises(ValueError, match="not found"):
+            add_custom_tool("Ghost", "no-such-binary", "claude-cli")
+        with pytest.raises(ValueError, match="engine"):
+            add_custom_tool("Proxy", "claude-proxy", "no-such-engine")

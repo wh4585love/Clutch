@@ -3855,6 +3855,32 @@ async def connect_tool_endpoint(body: ToolConnectRequest) -> dict[str, Any]:
         raise HTTPException(status_code=400, detail={"message": str(exc)}) from exc
 
 
+class CustomToolRequest(BaseModel):
+    name: str
+    binary: str
+    engine: str = "claude-cli"
+
+
+@app.post("/api/tools/custom")
+async def add_custom_tool_endpoint(body: CustomToolRequest) -> dict[str, Any]:
+    from src.tools_status import add_custom_tool
+
+    try:
+        return add_custom_tool(body.name, body.binary, body.engine)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail={"message": str(exc)}) from exc
+
+
+@app.delete("/api/tools/custom/{tool_id}")
+async def remove_custom_tool_endpoint(tool_id: str) -> dict[str, Any]:
+    from src.tools_status import remove_custom_tool
+
+    try:
+        return remove_custom_tool(tool_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail={"message": str(exc)}) from exc
+
+
 @app.post("/api/tools/disconnect")
 async def disconnect_tool_endpoint(body: ToolConnectRequest) -> dict[str, Any]:
     from src.tools_status import disconnect_tool

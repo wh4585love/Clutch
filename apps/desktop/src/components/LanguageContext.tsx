@@ -15,6 +15,14 @@ const LanguageContext = createContext<LanguageContextProps | undefined>(undefine
 const zhTranslations: Record<string, string> = {
   // Navigation & Sidebar
   "New Chat": "新建会话",
+  "Custom tool": "自定义工具",
+  "Register a CLI from your PATH (e.g. claude-proxy) and route it through a built-in engine recipe.": "注册 PATH 里的任意 CLI（如 claude-proxy），复用内置引擎的调用配方进行路由。",
+  "Display name": "显示名称",
+  "Binary name or path": "二进制名或路径",
+  "Like": "类似",
+  "Add Custom Tool": "添加自定义工具",
+  "Adding…": "添加中…",
+  "Remove": "移除",
   "Chat": "会话",
   "Agents": "智能体",
   "Flows": "流程",
