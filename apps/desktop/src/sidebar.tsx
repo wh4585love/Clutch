@@ -384,8 +384,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <div key={repo.id} className="space-y-0.5">
         <div
           onContextMenu={(e) => handleContextMenu(e, 'workspace', repo.id)}
-          className={`flex items-center justify-between p-1.5 rounded-lg border border-transparent transition-colors group ${
-            isActiveWorkspace ? 'bg-surface-container-low/80' : 'hover:bg-surface-bright'
+          className={`flex items-center justify-between px-2 py-2 rounded-lg transition-colors group ${
+            isActiveWorkspace ? 'bg-surface-container-high/60' : 'hover:bg-surface-container-high/35'
           } ${isDragging && pointerDragActive ? 'opacity-50 ring-1 ring-primary/30' : ''}`}
         >
           <div
@@ -408,7 +408,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               e.stopPropagation();
               onNewChatInWorkspace?.(repo.id);
             }}
-            className={BTN_ICON_SM}
+            className={`${BTN_ICON_SM} opacity-0 group-hover:opacity-100 focus-visible:opacity-100 transition-opacity`}
             aria-label={appMode === 'design' ? t('New Design') : t('New Chat')}
           >
             <LegacyIcon name="add" className="text-[16px]" />
