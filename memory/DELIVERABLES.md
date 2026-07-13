@@ -22,6 +22,17 @@
 
 ## Active Deliverables
 
+### Agent 交付物门禁（模块 5 落地） ✅
+- **日期：** 2026-07-13
+- **Commit：** `d48aff9` — `feat(workflow): enforce agent-declared deliverables after agent_task (Module 5)`
+- **Verification：** `./scripts/verify.sh` → pytest 717 passed / vitest 130 passed / build OK / 漂移机检 0 错误；`pytest tests/test_workflow_step_failure.py` → 4 passed（新增 3 例：缺失即 fail、存在即过、空声明跳过）
+- **证据：** —（门禁已覆盖）
+- **交付文件：**
+  - `services/orchestrator/src/compiler/compiler.py` — `_check_agent_deliverables`（复用 evaluator file_exists）+ agent_task 成功后校验，缺失 raise WorkflowStepFailed（DELIVERABLES MISSING）
+  - `services/orchestrator/tests/test_workflow_step_failure.py` — 交付物门禁 3 个测试
+  - `apps/desktop/src/components/AgentManager.tsx` — 移除模块 5「功能正在积极开发中」占位
+  - `docs/PRODUCT_INTRO.md` — §3.4 Agent Settings 补交付物门禁说明
+
 ### Handoff performance optimizations and UI experience improvements ✅
 - **日期：** 2026-07-12
 - **Commit：** `da69fcf`, `04439e1`, `07521aa`, `e03752e`, `5218d30`, `1e824ca`

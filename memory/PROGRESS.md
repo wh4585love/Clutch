@@ -19,6 +19,14 @@
 
 ## Recent Sessions
 
+## 2026-07-13 会话（fork：同步上游 v1.2.3 + 交付物门禁落地）
+
+- **Merge upstream/dev**（`8b9662b`）：29 个上游提交（v1.2.3、Terminal Orchestra handoff 增强、Windows 发版 CI、canvas 泄漏修复）；唯一冲突 `docs/PRODUCT_INTRO.md` 双取（fork 代码块渲染 + 上游 Loading 步骤）；已推 fork `wh4585love/Clutch` dev
+- **交付物门禁**（`d48aff9`）：Agent 模块 5 从占位变可用——`_check_agent_deliverables` 在 agent_task 成功后校验声明交付物落盘（复用 evaluator `file_exists`，含 FORBIDDEN 防护），缺失 → `WorkflowStepFailed`（DELIVERABLES MISSING）+ 跳过下游；移除前端占位提示；PRD §3.4 已同步；测试 4 passed
+- **handoff 机制澄清**：`is_handoff_skill_installed` 守卫已被上游 `702b847` 通用提示词注入方案取代（死代码），交接自述**无需预装 skill**；仍写了 `~/.claude/skills/handoff/SKILL.md` 规范摘要结构（/tmp/handoff-*.md 契约），可选增强
+- **BA 智能体重构**：薄人设进 Clutch agents.json + 方法论走工作区 `.claude`（claude-proxy 型的 Skills Registry / mcpServerIds 绑定不生效，走 CLI 原生发现）；SalesPortal 新增 `.mcp.json`（atlassian，token 走 env 引用）+ `enabledMcpjsonServers`
+- 下次优先：画布搭 product→dev→test 闭环 SOP（BA/Dev/QA + check 回边 + human_gate），BA 产物用交付物门禁卡
+
 ## 2026-07-12 会话（交接 Handoff 派发流程耗时优化与界面交互体验改进）
 
 - **性能优化**：将 Handoff 派发时 LLM 生成 Smart Summary 的耗时从同步改成了非阻塞后台任务异步生成，结合最新 12,000 字符的智能输入截断策略，彻底解决了界面可能因云端模型慢响应而卡死的问题。
