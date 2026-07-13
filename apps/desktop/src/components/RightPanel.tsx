@@ -419,11 +419,12 @@ export const RightPanel: React.FC<RightPanelProps> = ({
       />
 
       <div className={`flex-grow flex flex-col h-full overflow-hidden ${!isOpen ? 'hidden' : ''}`}>
+        <div className="flex items-stretch h-11 border-b border-outline-variant select-none bg-surface-container-low/40">
         <div
           className={
             useGridTabs
-              ? 'grid h-11 border-b border-outline-variant overflow-hidden select-none bg-surface-container-low/40'
-              : 'flex border-b border-outline-variant overflow-x-auto sidebar-scroll select-none bg-surface-container-low/40'
+              ? 'grid flex-1 min-w-0 overflow-hidden'
+              : 'flex flex-1 min-w-0 overflow-x-auto sidebar-scroll'
           }
           style={useGridTabs ? { gridTemplateColumns: `repeat(${visibleTabs.length}, minmax(0, 1fr))` } : undefined}
         >
@@ -464,6 +465,17 @@ export const RightPanel: React.FC<RightPanelProps> = ({
               </button>
             );
           })}
+        </div>
+        <button
+          type="button"
+          data-testid="right-panel-collapse"
+          onClick={() => setIsOpen(false)}
+          title={t('Collapse Panel')}
+          aria-label={t('Collapse Panel')}
+          className="px-2.5 flex items-center justify-center text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/40 transition-colors"
+        >
+          <LegacyIcon name="right_panel_close" className="text-[16px]" />
+        </button>
         </div>
 
         <div className="flex-1 overflow-y-auto sidebar-scroll p-5 bg-white">
