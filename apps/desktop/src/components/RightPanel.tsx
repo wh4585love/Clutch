@@ -299,7 +299,7 @@ export const RightPanel: React.FC<RightPanelProps> = ({
   const renderWorkflowSteps = (compact = false) => {
     if (workflowSteps.length === 0) {
       return (
-        <div className="p-6 border border-dashed border-outline-variant/50 rounded-xl text-center space-y-2">
+        <div className="p-8 text-center space-y-2">
           <LegacyIcon name="fork_right" className="text-[24px] text-on-surface-variant/50" />
           <p className="text-[11px] text-on-surface-variant leading-relaxed">{t('Workflow steps unavailable')}</p>
         </div>
@@ -422,8 +422,8 @@ export const RightPanel: React.FC<RightPanelProps> = ({
         <div
           className={
             useGridTabs
-              ? 'grid h-11 border-b border-outline-variant overflow-hidden select-none bg-surface-container-low/40'
-              : 'flex border-b border-outline-variant overflow-x-auto sidebar-scroll select-none bg-surface-container-low/40'
+              ? 'grid h-11 border-b border-outline-variant/60 overflow-hidden select-none'
+              : 'flex border-b border-outline-variant/60 overflow-x-auto sidebar-scroll select-none'
           }
           style={useGridTabs ? { gridTemplateColumns: `repeat(${visibleTabs.length}, minmax(0, 1fr))` } : undefined}
         >
@@ -471,14 +471,14 @@ export const RightPanel: React.FC<RightPanelProps> = ({
             <div className="space-y-6 animate-fade-in text-xs select-text">
               {showTerminalOrchestraOverview ? (
                 <section className="space-y-3">
-                  <div className="p-3 rounded-2xl border border-outline-variant/30 bg-surface-container-low shadow-sm">
+                  <div className="p-3 rounded-xl bg-surface-container-low/70">
                     <p className="text-[11px] text-on-surface-variant leading-relaxed">
                       <span className="font-bold text-on-surface">{t('Handoff')}</span>
                       {' — '}
                       {t('Handoff overview tip')}
                     </p>
                   </div>
-                  <h4 className="text-[10px] font-bold text-on-surface-variant/75 uppercase tracking-widest">
+                  <h4 className="text-[12px] font-medium text-on-surface-variant">
                     {t('Dispatch records')}
                   </h4>
                   <OverviewDispatchLog
@@ -494,13 +494,13 @@ export const RightPanel: React.FC<RightPanelProps> = ({
                       {renderStateSummary()}
                       {hasWorkflow ? (
                         <section>
-                          <h4 className="text-[10px] font-bold text-on-surface-variant/75 uppercase tracking-widest mb-3">
+                          <h4 className="text-[12px] font-medium text-on-surface-variant mb-3">
                             {t('Workflow step execution')}
                           </h4>
                           {renderWorkflowSteps(true)}
                         </section>
                       ) : isIdle ? (
-                        <div className="p-6 border border-dashed border-outline-variant/50 rounded-xl text-center space-y-2">
+                        <div className="p-8 text-center space-y-2">
                           <LegacyIcon name="monitoring" className="text-[24px] text-on-surface-variant/50" />
                           <p className="text-[11px] text-on-surface-variant leading-relaxed">
                             {t('No active workflow overview')}
@@ -512,7 +512,7 @@ export const RightPanel: React.FC<RightPanelProps> = ({
                     <>
                       {renderSingleAgentSummary()}
                       {isIdle && tokenTotal === 0 ? (
-                        <div className="p-6 border border-dashed border-outline-variant/50 rounded-xl text-center space-y-2">
+                        <div className="p-8 text-center space-y-2">
                           <LegacyIcon name="smart_toy" className="text-[24px] text-on-surface-variant/50" />
                           <p className="text-[11px] text-on-surface-variant leading-relaxed">
                             {t('No session activity yet')}
@@ -523,27 +523,27 @@ export const RightPanel: React.FC<RightPanelProps> = ({
                   )}
                   {tokenTotal > 0 ? (
                     <section>
-                      <h4 className="text-[10px] font-bold text-on-surface-variant/75 uppercase tracking-widest mb-4">
+                      <h4 className="text-[12px] font-medium text-on-surface-variant mb-4">
                         {t('Session Token Analytics')}
                       </h4>
                       <div className="space-y-4">
                         <div className="grid grid-cols-2 gap-3">
-                          <div className="p-3 border border-neutral-200 bg-neutral-50/50 rounded-xl">
+                          <div className="p-3 bg-surface-container-low/70 rounded-xl">
                             <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-wider mb-1">{t('Total Tokens')}</p>
                             <p className="text-base font-extrabold text-neutral-900 font-mono">{tokenTotal.toLocaleString()}</p>
                           </div>
-                          <div className="p-3 border border-neutral-200 bg-neutral-50/50 rounded-xl">
+                          <div className="p-3 bg-surface-container-low/70 rounded-xl">
                             <p className="text-[9px] text-zinc-500 font-bold uppercase tracking-wider mb-1">{t('Estimated Cost')}</p>
                             <p className="text-base font-extrabold text-neutral-900 font-mono">${sessionCostUsd.toFixed(4)}</p>
                           </div>
                         </div>
 
-                        <div className="p-3 border border-neutral-200 rounded-xl space-y-2">
+                        <div className="p-3 bg-surface-container-low/70 rounded-xl space-y-2">
                           <div className="flex items-center justify-between text-[10px] font-bold text-neutral-800">
                             <span>{t('Token Distribution')}</span>
                             <span className="text-zinc-500 font-normal font-mono">{t('Input vs Output')}</span>
                           </div>
-                          <div className="w-full h-3 rounded-full overflow-hidden flex bg-neutral-100 border border-neutral-200/50">
+                          <div className="w-full h-3 rounded-full overflow-hidden flex bg-surface-container-high">
                             <div
                               className="h-full bg-neutral-900 transition-all duration-300"
                               style={{ width: `${inputPct}%` }}
@@ -570,7 +570,7 @@ export const RightPanel: React.FC<RightPanelProps> = ({
 
           {activeTab === 'files' && (
             <div className="space-y-4 animate-fade-in text-xs select-none">
-              <h4 className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest mb-3">
+              <h4 className="text-[12px] font-medium text-on-surface-variant mb-3">
                 {t('Workspace Folder Structure')}
               </h4>
               <div className="space-y-1 font-mono font-medium text-xs text-on-surface-variant pl-1">
@@ -589,12 +589,12 @@ export const RightPanel: React.FC<RightPanelProps> = ({
 
           {activeTab === 'changes' && (
             <div className="space-y-4 animate-fade-in text-xs select-none">
-              <h4 className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">
+              <h4 className="text-[12px] font-medium text-on-surface-variant">
                 {t('Uncommitted changes')} ({uncommitted.length})
               </h4>
 
               {uncommitted.length === 0 ? (
-                <div className="py-8 text-center bg-surface-container-low/40 rounded-xl border border-dashed border-outline-variant mt-2 text-on-surface-variant/60">
+                <div className="py-10 text-center mt-2 text-on-surface-variant/60">
                   <LegacyIcon name="difference" className="text-[28px] mb-2" />
                   <p className="text-[11px] font-medium">{t('No uncommitted changes')}</p>
                 </div>
@@ -692,7 +692,7 @@ export const RightPanel: React.FC<RightPanelProps> = ({
           {activeTab === 'terminal' && (
             <div className="space-y-4 animate-fade-in h-full flex flex-col text-xs">
               <div className="flex items-center justify-between">
-                <h4 className="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">
+                <h4 className="text-[12px] font-medium text-on-surface-variant">
                   {t('Terminal logs')}
                 </h4>
                 <button

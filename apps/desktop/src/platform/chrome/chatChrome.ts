@@ -46,7 +46,7 @@ export function chatChromeForHost(
 }
 
 export function rightPanelSummaryTextClass(_hostOs: HostOs): string {
-  return 'p-3 border border-outline-variant/30 rounded-xl bg-surface-container-low/40 font-mono text-[11px] leading-relaxed space-y-1';
+  return 'text-[12px] leading-relaxed space-y-2 text-on-surface-variant';
 }
 
 export function rightPanelUsesGridTabs(_hostOs: HostOs): boolean {
