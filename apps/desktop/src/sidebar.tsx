@@ -394,7 +394,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               name={collapsed ? 'folder' : 'folder_open'}
               className="text-[18px] text-on-surface-variant"
             />
-            <span className="text-[13px] font-normal text-on-surface-variant/80 truncate">
+            <span className="text-[13.5px] text-on-surface truncate">
               {repo.name}
             </span>
           </div>
@@ -412,7 +412,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         {!collapsed && (
-          <div className="space-y-0.5 ml-4 border-l-2 border-outline-variant/20 pl-2">
+          <div className="space-y-0.5 pl-[26px]">
             {projectSessions.length === 0 ? (
               <p className="text-[11px] text-on-surface-variant/60 italic py-1 pl-2">
                 {t('No sessions in this project yet')}
@@ -448,9 +448,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
                               ? 'bg-surface-bright shadow-sm border-outline-variant/40'
                               : 'border-transparent hover:bg-surface-bright'
                           }`
-                        : `flex items-center justify-between p-2 ${
+                        : `group flex items-center justify-between px-2 py-[7px] ${
                             isActiveSession
-                              ? 'bg-surface-bright shadow-sm text-on-surface font-medium border-outline-variant/40'
+                              ? 'bg-surface-container-high/60 text-on-surface border-transparent'
                               : 'border-transparent text-on-surface-variant hover:bg-surface-bright hover:text-on-surface'
                           }`
                     }`}
@@ -504,11 +504,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
                               aria-hidden
                             />
                           ) : null}
-                          <span className="text-[12.5px] truncate">
+                          <span className="text-[13px] truncate">
                             {sessionLabel(session)}
                           </span>
                         </span>
-                        <span className="ml-2 text-[10px] text-on-surface-variant/60 flex-shrink-0">
+                        <span className="ml-2 text-[10px] text-on-surface-variant/60 flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
                           {formatRelativeTime(session.started_at)}
                         </span>
                       </>
@@ -586,14 +586,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
             data-testid="nav-new-chat"
             onClick={onNewChat}
             aria-label={appMode === 'design' ? t('New Design') : t('New Chat')}
-            className={`w-full flex items-center gap-2.5 p-2 rounded-lg border transition-[background-color,border-color,color,box-shadow] text-left group ${
+            className={`w-full flex items-center gap-3 px-2 py-2 rounded-lg transition-colors text-left ${
               currentView === 'chat'
-                ? 'bg-surface-bright shadow-sm text-on-surface font-semibold border-outline-variant/50'
-                : 'border-transparent text-on-surface-variant hover:bg-surface-bright hover:text-on-surface'
+                ? 'bg-surface-container-high/60 text-on-surface font-medium'
+                : 'text-on-surface hover:bg-surface-bright'
             }`}
           >
-            <LegacyIcon name={appMode === 'design' ? 'palette' : NAV_CONFIG.chat.icon} className="text-[17px] text-on-surface-variant group-hover:text-primary" />
-            <span className="text-xs font-semibold tracking-wide">{appMode === 'design' ? t('New Design') : t('New Chat')}</span>
+            <LegacyIcon name={appMode === 'design' ? 'palette' : NAV_CONFIG.chat.icon} className="text-[18px] text-on-surface-variant" />
+            <span className="text-[13.5px]">{appMode === 'design' ? t('New Design') : t('New Chat')}</span>
           </button>
 
         {appMode !== 'design' ? (
@@ -602,14 +602,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
               data-testid="nav-agents"
               onClick={() => setView('agents')}
               aria-label={t('AI Agents')}
-              className={`w-full flex items-center gap-2.5 p-2 rounded-lg border transition-[background-color,border-color,color,box-shadow] text-left group ${
+              className={`w-full flex items-center gap-3 px-2 py-2 rounded-lg transition-colors text-left ${
                 currentView === 'agents'
-                  ? 'bg-surface-bright shadow-sm text-on-surface font-semibold border-outline-variant/50'
-                  : 'border-transparent text-on-surface-variant hover:bg-surface-bright hover:text-on-surface'
+                  ? 'bg-surface-container-high/60 text-on-surface font-medium'
+                  : 'text-on-surface hover:bg-surface-bright'
               }`}
             >
-              <LegacyIcon name={NAV_CONFIG.agents.icon} className="text-[17px] text-on-surface-variant group-hover:text-primary" />
-              <span className="text-xs font-semibold tracking-wide">{t("AI Agents")}</span>
+              <LegacyIcon name={NAV_CONFIG.agents.icon} className="text-[18px] text-on-surface-variant" />
+              <span className="text-[13.5px]">{t("AI Agents")}</span>
             </button>
 
             {isMultiAgent ? (
@@ -617,14 +617,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 data-testid="nav-workflows"
                 onClick={() => setView('workflows')}
                 aria-label={t('Workflows SOP')}
-                className={`w-full flex items-center gap-2.5 p-2 rounded-lg border transition-[background-color,border-color,color,box-shadow] text-left group ${
+                className={`w-full flex items-center gap-3 px-2 py-2 rounded-lg transition-colors text-left ${
                   currentView === 'workflows'
-                    ? 'bg-surface-bright shadow-sm text-on-surface font-semibold border-outline-variant/60'
-                    : 'border-transparent text-on-surface-variant hover:bg-surface-bright hover:text-on-surface'
+                    ? 'bg-surface-container-high/60 text-on-surface font-medium'
+                    : 'text-on-surface hover:bg-surface-bright'
                 }`}
               >
-                <LegacyIcon name={NAV_CONFIG.workflows.icon} className="text-[17px] text-on-surface-variant group-hover:text-primary" />
-                <span className="text-xs font-semibold tracking-wide">{t("Workflows SOP")}</span>
+                <LegacyIcon name={NAV_CONFIG.workflows.icon} className="text-[18px] text-on-surface-variant" />
+                <span className="text-[13.5px]">{t("Workflows SOP")}</span>
               </button>
             ) : null}
           </>
@@ -632,7 +632,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         <div className="flex items-center justify-between text-on-surface-variant px-2">
-          <span className="text-[11px] font-bold uppercase tracking-wider text-on-surface-variant/70">
+          <span className="text-[12px] font-medium text-on-surface-variant">
             {t('Projects')}
           </span>
           <div className="flex gap-2">
@@ -663,10 +663,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
           value={repoFilter}
           onChange={(event) => setRepoFilter(event.target.value)}
           placeholder={t('Filter projects')}
-          className="mx-1 mb-1 w-[calc(100%-0.5rem)] rounded-lg border border-outline-variant/60 bg-surface-bright px-2.5 py-1.5 text-[11px] text-on-surface placeholder:text-on-surface-variant/60 focus:outline-none focus:border-primary/50"
+          className="mx-1 mb-1 w-[calc(100%-0.5rem)] rounded-lg bg-surface-container-low/70 px-2.5 py-1.5 text-[12px] text-on-surface placeholder:text-on-surface-variant/60 focus:outline-none focus:bg-surface-container-low"
         />
-
-        <div className="mx-1 h-px bg-outline-variant/50" />
 
         <nav className="flex-1 sidebar-scroll overflow-y-auto space-y-2 px-1 pb-2">
           {workspaces.length === 0 && repositoryGroups.length === 0 && (
@@ -700,12 +698,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-left hover:bg-surface-bright transition-colors"
                 >
                   <LegacyIcon name={groupCollapsed ? "folder_special" : "folder_special_open"} className="text-[16px] text-on-surface-variant" />
-                  <span className="text-xs font-bold uppercase tracking-wide text-on-surface-variant/80 truncate">
+                  <span className="text-[12.5px] font-medium text-on-surface-variant truncate">
                     {group.name}
                   </span>
                 </button>
                 {!groupCollapsed && (
-                  <div className="space-y-1 ml-2 border-l border-outline-variant/30 pl-2">
+                  <div className="space-y-1 pl-3">
                     {groupWorkspaces.length === 0 ? (
                       <p className="text-[11px] text-on-surface-variant/60 italic py-1 pl-2">
                         {t('No projects in this group yet')}
@@ -737,12 +735,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-left hover:bg-surface-bright transition-colors"
                 >
                   <LegacyIcon name={defaultGroupCollapsed ? "folder_special" : "folder_special_open"} className="text-[16px] text-on-surface-variant" />
-                  <span className="text-xs font-bold uppercase tracking-wide text-on-surface-variant/80 truncate">
+                  <span className="text-[12.5px] font-medium text-on-surface-variant truncate">
                     {t('Default Group')}
                   </span>
                 </button>
                 {!defaultGroupCollapsed && (
-                  <div className="space-y-1 ml-2 border-l border-outline-variant/30 pl-2">
+                  <div className="space-y-1 pl-3">
                     {ungroupedWorkspaces.length === 0 ? (
                       <p className="text-[11px] text-on-surface-variant/60 italic py-1 pl-2">
                         {t('No projects in this group yet')}
@@ -773,12 +771,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
               data-testid="nav-settings"
               onClick={() => setView('settings')}
               aria-label={t('Settings')}
-              className={`flex-1 min-w-0 flex items-center justify-center gap-2 px-1.5 py-1 rounded-lg border text-center transition-[background-color,border-color,color,box-shadow] group ${
-                currentView === 'settings' ? 'bg-surface-bright shadow-sm text-on-surface font-semibold border-outline-variant/60' : 'border-transparent text-on-surface-variant hover:bg-surface-bright'
+              className={`flex-1 min-w-0 flex items-center justify-center gap-2 px-1.5 py-1 rounded-lg text-center transition-colors ${
+                currentView === 'settings' ? 'bg-surface-container-high/60 text-on-surface font-medium' : 'text-on-surface hover:bg-surface-bright'
               }`}
             >
-              <LegacyIcon name={NAV_CONFIG.settings.icon} className="text-[17px] shrink-0 text-on-surface-variant group-hover:text-primary" />
-              <span className="text-[11px] font-semibold tracking-wide truncate">{t('Settings')}</span>
+              <LegacyIcon name={NAV_CONFIG.settings.icon} className="text-[18px] shrink-0 text-on-surface-variant" />
+              <span className="text-[12px] truncate">{t('Settings')}</span>
             </button>
             <UpdateBanner />
             <SidecarPatchReady />
@@ -790,14 +788,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
             data-testid="nav-settings"
             onClick={() => setView('settings')}
             aria-label={t('Settings')}
-            className={`w-full flex items-center gap-2.5 p-2 rounded-lg border text-left transition-[background-color,border-color,color,box-shadow] group ${
+            className={`w-full flex items-center gap-3 px-2 py-2 rounded-lg text-left transition-colors ${
               currentView === 'settings'
-                ? 'bg-surface-bright shadow-sm text-on-surface font-semibold border-outline-variant/50'
-                : 'border-transparent text-on-surface-variant hover:bg-surface-bright hover:text-on-surface'
+                ? 'bg-surface-container-high/60 text-on-surface font-medium'
+                : 'text-on-surface hover:bg-surface-bright'
             }`}
           >
-            <LegacyIcon name={NAV_CONFIG.settings.icon} className="text-[17px] text-on-surface-variant group-hover:text-primary" />
-            <span className="text-xs font-semibold tracking-wide">{t('Settings')}</span>
+            <LegacyIcon name={NAV_CONFIG.settings.icon} className="text-[18px] text-on-surface-variant" />
+            <span className="text-[13.5px]">{t('Settings')}</span>
           </button>
           <div className="flex items-center gap-1 min-w-0 px-1">
             <UpdateBanner />
