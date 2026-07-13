@@ -29,10 +29,18 @@ export const WorkflowJsonPanel: React.FC<WorkflowJsonPanelProps> = ({
             {t("Edit complex flows (checks, approvals, branches, loops) here; schema will be verified by Sidecar before saving.")}
           </p>
         </div>
-        {hint && (
-          <span className="max-w-[min(420px,55%)] text-[10px] font-mono text-amber-800 bg-amber-50 border border-amber-200/80 px-2 py-1 rounded-lg shrink-0 whitespace-pre-wrap break-words text-right leading-relaxed">
-            {hint}
-          </span>
+        {hint !== null && hint !== undefined && (
+          <details className="max-w-[min(420px,55%)] shrink-0 text-[10px] font-mono text-amber-800 bg-amber-50 border border-amber-200/80 px-2 py-1 rounded-lg">
+            <summary className="cursor-pointer select-none">
+              {t('Complex workflow: please edit in JSON mode')}
+              {hint ? ` (${hint.split('; ').length})` : ''}
+            </summary>
+            {hint && (
+              <p className="mt-1.5 pt-1.5 border-t border-amber-200/60 whitespace-pre-wrap break-words leading-relaxed">
+                {hint.split('; ').join('\n')}
+              </p>
+            )}
+          </details>
         )}
       </div>
       <textarea

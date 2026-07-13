@@ -808,13 +808,7 @@ export const WorkflowOrchestration: React.FC<WorkflowOrchestrationProps> = ({
                   onChange={setJsonText}
                   readOnly={false}
                   error={saveError}
-                  hint={
-                    !canvasCompatible
-                      ? `${t('Complex workflow: please edit in JSON mode')}${
-                          canvasIncompatHint ? ` — ${canvasIncompatHint}` : ''
-                        }`
-                      : null
-                  }
+                  hint={!canvasCompatible ? canvasIncompatHint ?? '' : null}
                 />
               ) : activeWorkflow ? (
                 <div className="flex-1 relative bg-neutral-50/20 min-h-0">
