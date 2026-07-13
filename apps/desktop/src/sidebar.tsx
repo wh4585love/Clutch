@@ -586,7 +586,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
       {isOpenState ? (
       <div className="flex-1 flex flex-col gap-3 overflow-hidden h-full">
         {!isWindows ? (
-          <div className="px-3 pt-1 pb-2">
+          // pt-7 clears the macOS overlay traffic lights (hidden native title bar)
+          <div className="px-3 pt-7 pb-2">
             <span className="text-[17px] font-bold tracking-tight text-on-surface">Clutch</span>
           </div>
         ) : null}
