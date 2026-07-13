@@ -29,6 +29,14 @@
 
 ## Recent Sessions
 
+## 2026-07-13 会话（fork：自定义工具 + Codex 风格 UI 全面改造，合入 dev）
+
+- **本仓库为 wh4585love fork**；`feat/custom-ai-tools`（25 commits）已合入本地 `dev`（`a8f1133`）并推送 fork 三分支（dev / feat/custom-ai-tools / fix/dev-launcher-pitfalls）；用户决定**不给上游开 PR**
+- 功能：自定义 AI CLI 工具注册（claude-proxy）、chat 工作区钉定修复、聊天区围栏代码块渲染（语言标签+复制）
+- UI：Codex 对齐——欢迎屏/输入框、扁平侧栏（品牌行/用户行/三级灰阶选中）、48px 顶栏+面板开关、右面板拍平、Midnight 深色主题、macOS Overlay 无缝标题栏
+- 坑：Tauri v2 默认权限无 `start-dragging`（窗口拖不动）→ capabilities 显式加 `core:window:allow-start-dragging` + 全局 28px 拖拽带（`platform/windowDrag.ts`）
+- 下次优先：验收 Overlay 标题栏细节（红绿灯与折叠轨间距）；可选清理 8 个 zh 重复键警告
+
 ## 2026-07-11 会话（v1.2.2 发版准备）
 
 - 版本 bump 1.2.1 → 1.2.2；CHANGELOG / README / releases 快照；**macOS + Windows**（patch 例外，对齐 Design Preview）

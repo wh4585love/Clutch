@@ -69,3 +69,10 @@
 - **现象：** 无法 `pnpm tauri dev`
 - **解决：** rustup 安装 Rust；M0-05 Tauri 工程补全中
 - **规避：** 开发期仍可手动 `uv run uvicorn` 启动 Sidecar
+
+### [RESOLVED] Fork-UI · Tauri v2 Overlay 标题栏窗口拖不动（2026-07-13）
+
+- **现象：** `titleBarStyle: Overlay` 后窗口无法拖动；`data-tauri-drag-region` 与 `startDragging()` 均无效且无报错
+- **根因：** Tauri v2 `core:default` 权限集只含窗口只读操作，`start-dragging` 属变更类，默认不授权，调用被静默拒绝
+- **解决：** `capabilities/default.json` 显式加 `core:window:allow-start-dragging`；`platform/windowDrag.ts` 全局 28px 顶带 `startDragging`
+- **规避：** Overlay/无边框窗口需要的窗口变更操作（drag/maximize/resize）一律显式声明权限

@@ -125,6 +125,7 @@ Layer 4 为**操作规程**，不是权威来源。冲突时以本文 §铁律 �
 - macOS 打包 sidecar `console=False` 会在 Dock 多出一个图标 → `clutch.spec` 在 macOS/Linux 用 `console=True`，Windows 保持 `console=False`
 - Windows `shell=False` 不要裸跑 `pnpm/npm/npx/uv` → 用 `shutil.which`/Node wrapper 解析 `.cmd`，`uv` 需支持 `python -m uv` fallback
 - `http_chat_complete` 返回 `{content, reasoning_content}` dict 时，`sanitize_engine_output`/`re.sub` 会 TypeError → 消费方必须先 `LLMProviderRouter.extract_content`（v1.2.0 chat 回归）
+- Tauri v2 `core:default` 不含窗口变更类权限，Overlay 标题栏下 `startDragging`/drag-region 被静默拒绝 → capabilities 显式加 `core:window:allow-start-dragging`
 
 ---
 
