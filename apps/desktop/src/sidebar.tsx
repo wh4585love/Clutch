@@ -399,7 +399,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               name={collapsed ? 'folder' : 'folder_open'}
               className="text-[18px] text-on-surface-variant"
             />
-            <span className="text-[13.5px] text-on-surface truncate">
+            <span className="text-[14px] text-on-surface truncate">
               {repo.name}
             </span>
           </div>
@@ -453,10 +453,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
                               ? 'bg-surface-bright shadow-sm border-outline-variant/40'
                               : 'border-transparent hover:bg-surface-container-high/40'
                           }`
-                        : `group flex items-center justify-between px-2 py-[7px] ${
+                        : `group flex items-center justify-between px-2 py-2 ${
                             isActiveSession
                               ? 'bg-surface-container-high/60 text-on-surface border-transparent'
-                              : 'border-transparent text-on-surface-variant hover:bg-surface-container-high/40 hover:text-on-surface'
+                              : 'border-transparent text-on-surface/75 hover:bg-surface-container-high/40 hover:text-on-surface'
                           }`
                     }`}
                   >
@@ -509,7 +509,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                               aria-hidden
                             />
                           ) : null}
-                          <span className="text-[13px] truncate">
+                          <span className="text-[13.5px] truncate">
                             {sessionLabel(session)}
                           </span>
                         </span>
@@ -642,11 +642,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
         ) : null}
         </div>
 
-        <div className="flex items-center justify-between text-on-surface-variant px-2">
+        <div className="group/proj flex items-center justify-between text-on-surface-variant px-2">
           <span className="text-[12px] font-medium text-on-surface-variant">
             {t('Projects')}
           </span>
-          <div className="flex gap-2">
+          <div className="flex gap-1 opacity-0 group-hover/proj:opacity-100 focus-within:opacity-100 transition-opacity">
             <button
               type="button"
               data-testid="nav-new-repo-group"
@@ -737,21 +737,24 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 data-testid="repo-group-default"
                 data-drop-group-id="__default__"
               >
-                <button
-                  type="button"
-                  data-testid="repo-group-default-toggle"
-                  data-drop-group-id="__default__"
-                  onClick={() => setDefaultGroupCollapsed(!defaultGroupCollapsed)}
-                  aria-label={t('Default Group')}
-                  className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-left hover:bg-surface-container-high/40 transition-colors"
-                >
-                  <LegacyIcon name={defaultGroupCollapsed ? "folder_special" : "folder_special_open"} className="text-[16px] text-on-surface-variant" />
-                  <span className="text-[12.5px] font-medium text-on-surface-variant truncate">
-                    {t('Default Group')}
-                  </span>
-                </button>
-                {!defaultGroupCollapsed && (
-                  <div className="space-y-1 pl-3">
+                {/* Codex-style: no wrapper header when the default group is the only one */}
+                {repositoryGroups.length > 0 && (
+                  <button
+                    type="button"
+                    data-testid="repo-group-default-toggle"
+                    data-drop-group-id="__default__"
+                    onClick={() => setDefaultGroupCollapsed(!defaultGroupCollapsed)}
+                    aria-label={t('Default Group')}
+                    className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-left hover:bg-surface-container-high/40 transition-colors"
+                  >
+                    <LegacyIcon name={defaultGroupCollapsed ? "folder_special" : "folder_special_open"} className="text-[16px] text-on-surface-variant" />
+                    <span className="text-[12.5px] font-medium text-on-surface-variant truncate">
+                      {t('Default Group')}
+                    </span>
+                  </button>
+                )}
+                {(repositoryGroups.length === 0 || !defaultGroupCollapsed) && (
+                  <div className={repositoryGroups.length === 0 ? 'space-y-1' : 'space-y-1 pl-3'}>
                     {ungroupedWorkspaces.length === 0 ? (
                       <p className="text-[11px] text-on-surface-variant/60 italic py-1 pl-2">
                         {t('No projects in this group yet')}
