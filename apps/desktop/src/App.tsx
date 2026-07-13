@@ -1734,6 +1734,9 @@ function MainLayout() {
 
   const activeSession = sessions.find(s => s.run_id === sessionRunId);
   const sessionTitle = activeSession ? (activeSession.title || activeSession.workflow_id || activeSession.run_id) : '';
+  const rightPanelAvailable =
+    (appMode === 'coding' || appMode === 'design')
+    && !['workflows', 'agents', 'tools', 'skills', 'mcp', 'models', 'appearance', 'settings'].includes(currentView);
 
   return (
     <div 
@@ -1751,6 +1754,8 @@ function MainLayout() {
         sidebarOpen={sidebarOpen}
         appMode={appMode}
         onAppModeChange={handleAppModeChange}
+        rightPanelOpen={rightPanelOpen}
+        onToggleRightPanel={rightPanelAvailable ? () => setRightPanelOpen(!rightPanelOpen) : undefined}
       />
 
       {!isWindows ? (
@@ -2012,7 +2017,7 @@ function MainLayout() {
         )}
 
         {/* Right collapsible rail — Coding + Design (Design defaults collapsed) */}
-        {(appMode === 'coding' || appMode === 'design') && !['workflows', 'agents', 'tools', 'skills', 'mcp', 'models', 'appearance', 'settings'].includes(currentView) ? (
+        {rightPanelAvailable ? (
               <RightPanel
                 activeTab={rightTab}
                 setActiveTab={setRightTab}

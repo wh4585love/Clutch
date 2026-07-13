@@ -1,5 +1,6 @@
 import React from 'react';
 import { useLanguage } from './LanguageContext';
+import { LegacyIcon } from './ui/LegacyIcon';
 import {
   HEADER_BREADCRUMB_LEFT_PADDING_PX,
   SIDEBAR_COLLAPSED_WIDTH_PX,
@@ -16,6 +17,8 @@ interface HeaderProps {
   sidebarOpen?: boolean;
   appMode: AppWorkspaceMode;
   onAppModeChange: (mode: AppWorkspaceMode) => void;
+  rightPanelOpen?: boolean;
+  onToggleRightPanel?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -26,6 +29,8 @@ export const Header: React.FC<HeaderProps> = ({
   sidebarOpen = true,
   appMode,
   onAppModeChange,
+  rightPanelOpen,
+  onToggleRightPanel,
 }) => {
   const { t } = useLanguage();
 
@@ -92,6 +97,22 @@ export const Header: React.FC<HeaderProps> = ({
             {t('Design')}
           </button>
         </div>
+
+        {onToggleRightPanel && (
+          <button
+            type="button"
+            data-testid="header-right-panel-toggle"
+            onClick={onToggleRightPanel}
+            title={rightPanelOpen ? t('Collapse Panel') : t('Expand Panel')}
+            aria-label={rightPanelOpen ? t('Collapse Panel') : t('Expand Panel')}
+            className="w-8 h-8 flex items-center justify-center rounded-lg text-on-surface-variant hover:text-on-surface hover:bg-surface-container-low transition-colors cursor-pointer"
+          >
+            <LegacyIcon
+              name={rightPanelOpen ? 'right_panel_close' : 'right_panel_open'}
+              className="text-[17px]"
+            />
+          </button>
+        )}
       </div>
     </header>
   );
