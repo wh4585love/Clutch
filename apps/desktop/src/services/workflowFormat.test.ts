@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  compilerToPreviewFlow,
   formatCanvasIncompatibilities,
   getCanvasIncompatibilities,
   isCanvasCompatible,
@@ -86,5 +87,34 @@ describe('workflowFormat', () => {
     expect(reasons.some((r) => r.kind === 'unsupported_node_type' && r.nodeId === 'verify')).toBe(
       true,
     );
+  });
+
+  it('builds a read-only preview flow with synthetic start and styled back edges', () => {
+    const workflow = {
+      id: 'wf',
+      name: 'wf',
+      version: 1,
+      nodes: [
+        { id: 'ba', type: 'agent_task', position: { x: 100, y: 120 }, data: { label: 'BA', agent: 'BA' } },
+        { id: 'gate', type: 'check', data: { label: 'Gate', checks: [{ type: 'file_exists', path: 'a.md' }] } },
+        { id: 'review', type: 'human_gate', data: { label: 'Review' } },
+        { id: 'end', type: 'end', data: { label: 'Done' } },
+      ],
+      edges: [
+        { id: 'e1', source: 'start', target: 'ba' },
+        { id: 'e2', source: 'ba', target: 'gate' },
+        { id: 'e3', source: 'gate', target: 'review', data: { when: 'passed' } },
+        { id: 'e4', source: 'gate', target: 'ba', data: { when: 'failed' } },
+        { id: 'e5', source: 'review', target: 'end', data: { when: 'approve' } },
+      ],
+    };
+    const { nodes, edges } = compilerToPreviewFlow(workflow);
+    expect(nodes.map((n) => n.id)).toEqual(['start', 'ba', 'gate', 'review', 'end']);
+    expect(nodes[0].position.y).toBeLessThan(nodes[1].position.y);
+    expect(nodes.find((n) => n.id === 'gate')?.data.sub).toContain('a.md');
+    const back = edges.find((e) => e.id === 'e4');
+    expect(back?.label).toBe('failed');
+    expect(back?.style.strokeDasharray).toBe('5 3');
+    expect(edges.find((e) => e.id === 'e3')?.label).toBe('passed');
   });
 });

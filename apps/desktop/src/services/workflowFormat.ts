@@ -156,6 +156,80 @@ export function isCanvasCompatible(workflow: Pick<CompilerWorkflow, 'nodes' | 'e
   return getCanvasIncompatibilities(workflow).length === 0;
 }
 
+export interface PreviewFlowNode {
+  id: string;
+  type: 'preview';
+  position: { x: number; y: number };
+  data: { label: string; kind: string; sub: string };
+}
+
+export interface PreviewFlowEdge {
+  id: string;
+  source: string;
+  target: string;
+  label?: string;
+  animated?: boolean;
+  style: Record<string, unknown>;
+  labelStyle: Record<string, unknown>;
+  markerEnd: { type: string; color: string };
+}
+
+/** One-way compiler JSON → React Flow props for the read-only preview of
+ * canvas-incompatible workflows (check / human_gate / conditional edges / cycles). */
+export function compilerToPreviewFlow(workflow: CompilerWorkflow): {
+  nodes: PreviewFlowNode[];
+  edges: PreviewFlowEdge[];
+} {
+  const nodes: PreviewFlowNode[] = workflow.nodes.map((node, idx) => {
+    const data = node.data as {
+      label?: string;
+      agent?: string;
+      checks?: Array<{ type?: string; path?: string; command?: unknown }>;
+    };
+    let sub = '';
+    if (node.type === 'agent_task') sub = data.agent ?? '';
+    else if (node.type === 'check')
+      sub = (data.checks ?? [])
+        .map((c) => (c.type === 'file_exists' ? `file: ${c.path ?? ''}` : c.type ?? ''))
+        .join(' · ');
+    else if (node.type === 'human_gate') sub = 'Approve / Reject';
+    return {
+      id: node.id,
+      type: 'preview',
+      position: node.position ?? { x: 120, y: 140 + idx * 130 },
+      data: { label: data.label ?? node.id, kind: node.type, sub },
+    };
+  });
+  if (!nodes.some((n) => n.id === 'start')) {
+    const firstTarget = workflow.edges.find((e) => e.source === 'start')?.target;
+    const anchor = nodes.find((n) => n.id === firstTarget);
+    nodes.unshift({
+      id: 'start',
+      type: 'preview',
+      position: anchor
+        ? { x: anchor.position.x, y: anchor.position.y - 110 }
+        : { x: 120, y: 10 },
+      data: { label: 'start', kind: 'start', sub: '' },
+    });
+  }
+  const edges: PreviewFlowEdge[] = workflow.edges.map((edge) => {
+    const when = edge.data?.when;
+    const isBack = when === 'failed' || when === 'reject';
+    const color = isBack ? '#dc2626' : '#64748b';
+    return {
+      id: edge.id,
+      source: edge.source,
+      target: edge.target,
+      label: when,
+      animated: isBack,
+      style: isBack ? { stroke: color, strokeDasharray: '5 3' } : { stroke: color },
+      labelStyle: { fill: isBack ? '#dc2626' : '#16a34a', fontWeight: 600 },
+      markerEnd: { type: 'arrowclosed', color },
+    };
+  });
+  return { nodes, edges };
+}
+
 export function compilerToCanvas(workflow: CompilerWorkflow, icon = 'account_tree'): WorkflowDef {
   const agentNodes = workflow.nodes.filter((n) => n.type === 'agent_task');
 

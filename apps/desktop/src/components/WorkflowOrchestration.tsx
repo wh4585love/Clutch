@@ -22,6 +22,7 @@ import { WorkflowJsonPanel } from './WorkflowJsonPanel';
 import {
   canvasToCompiler,
   compilerToCanvas,
+  compilerToPreviewFlow,
   formatCompilerJson,
   formatCanvasIncompatibilities,
   getCanvasIncompatibilities,
@@ -122,6 +123,31 @@ const CustomNode = ({ data }: { data: any }) => {
 
 const nodeTypes = {
   custom: CustomNode,
+};
+
+const PREVIEW_NODE_STYLES: Record<string, string> = {
+  agent_task: 'bg-blue-50 border-blue-400 text-blue-900',
+  check: 'bg-amber-50 border-amber-400 text-amber-900',
+  human_gate: 'bg-violet-50 border-violet-400 text-violet-900',
+  start: 'bg-neutral-100 border-neutral-300 text-neutral-600',
+  end: 'bg-emerald-50 border-emerald-400 text-emerald-900',
+};
+
+const PreviewNode = ({ data }: { data: { label: string; kind: string; sub: string } }) => (
+  <div
+    className={`px-4 py-2 rounded-xl border-2 shadow-2xs min-w-[170px] max-w-[240px] text-center ${
+      PREVIEW_NODE_STYLES[data.kind] ?? PREVIEW_NODE_STYLES.agent_task
+    }`}
+  >
+    <Handle type="target" position={Position.Top} className="!bg-neutral-300 !w-2 !h-2" />
+    <p className="text-[11px] font-bold leading-tight">{data.label}</p>
+    {data.sub && <p className="text-[9px] opacity-70 font-mono mt-0.5 break-all">{data.sub}</p>}
+    <Handle type="source" position={Position.Bottom} className="!bg-neutral-300 !w-2 !h-2" />
+  </div>
+);
+
+const previewNodeTypes = {
+  preview: PreviewNode,
 };
 
 export const WorkflowOrchestration: React.FC<WorkflowOrchestrationProps> = ({
@@ -287,6 +313,16 @@ export const WorkflowOrchestration: React.FC<WorkflowOrchestrationProps> = ({
     const compiler = canvasToCompiler(activeWorkflow);
     setJsonText(formatCompilerJson(compiler));
   };
+
+  // Read-only React Flow preview for canvas-incompatible workflows (JSON stays authoritative).
+  const previewFlow = useMemo(() => {
+    if (canvasCompatible) return null;
+    try {
+      return compilerToPreviewFlow(parseCompilerJson(jsonText));
+    } catch {
+      return null;
+    }
+  }, [canvasCompatible, jsonText]);
 
   // Layout conversion
   React.useEffect(() => {
@@ -757,15 +793,18 @@ export const WorkflowOrchestration: React.FC<WorkflowOrchestrationProps> = ({
                   <div className="flex rounded-xl border border-neutral-200/60 overflow-hidden text-xs font-bold whitespace-nowrap shadow-2xs">
                     <button
                       type="button"
-                      disabled={!canvasCompatible}
-                      onClick={() => { syncJsonFromCanvas(); setViewMode('canvas'); }}
+                      disabled={!canvasCompatible && !previewFlow}
+                      onClick={() => {
+                        if (canvasCompatible) syncJsonFromCanvas();
+                        setViewMode('canvas');
+                      }}
                       className={`px-3 py-1.5 text-[11px] transition-colors ${
                         viewMode === 'canvas'
                           ? 'bg-neutral-900 text-white'
                           : 'bg-neutral-50 text-neutral-700 hover:bg-neutral-100 disabled:opacity-40'
                       }`}
                     >
-                      {t('Canvas')}
+                      {canvasCompatible ? t('Canvas') : t('Preview')}
                     </button>
                     <button
                       type="button"
@@ -810,6 +849,28 @@ export const WorkflowOrchestration: React.FC<WorkflowOrchestrationProps> = ({
                   error={saveError}
                   hint={!canvasCompatible ? canvasIncompatHint ?? '' : null}
                 />
+              ) : !canvasCompatible && previewFlow ? (
+                <div className="flex-1 relative bg-neutral-50/20 min-h-0">
+                  <div className="absolute top-3 left-3 z-10 text-[10px] font-mono bg-white/90 border border-neutral-200 text-neutral-500 px-2 py-1 rounded-lg shadow-2xs">
+                    {t('Read-only preview — edit in JSON mode')}
+                  </div>
+                  <ReactFlow
+                    key={`preview-${activeItem?.id ?? ''}`}
+                    nodes={previewFlow.nodes as unknown as Node[]}
+                    edges={previewFlow.edges as unknown as Edge[]}
+                    nodeTypes={previewNodeTypes}
+                    nodesDraggable={false}
+                    nodesConnectable={false}
+                    elementsSelectable={false}
+                    edgesFocusable={false}
+                    fitView
+                    minZoom={0.2}
+                    maxZoom={1.25}
+                  >
+                    <Background />
+                    <Controls showInteractive={false} />
+                  </ReactFlow>
+                </div>
               ) : activeWorkflow ? (
                 <div className="flex-1 relative bg-neutral-50/20 min-h-0">
                   <ReactFlow
