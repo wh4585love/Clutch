@@ -68,3 +68,50 @@ def test_workflow_stops_after_failed_agent_step(monkeypatch: pytest.MonkeyPatch)
         )
 
     assert calls == ["agent-1"]
+
+
+def _ok_execute(node_data, *, instruction="", run_id="", node_id=""):
+    from src.agent_executor import AgentTaskResult
+    from src.chat_events import chat_message
+
+    agent = str(node_data.get("agent", ""))
+    return AgentTaskResult(agent=agent, output="done", logs=[], message=chat_message(agent, "done"))
+
+
+def _run_with_deliverables(monkeypatch, tmp_path, deliverables):
+    from src import workspace
+
+    workspace.clear_workspace_for_tests()
+    workspace.set_workspace(str(tmp_path))
+    monkeypatch.setattr("src.compiler.compiler.execute_agent_task", _ok_execute)
+    monkeypatch.setattr("src.compiler.compiler.emit_workflow_agent_step", lambda *_a, **_k: None)
+    monkeypatch.setattr(
+        "src.engine_router.find_agent",
+        lambda ref: {"id": ref, "name": "BA", "deliverables": deliverables},
+    )
+    compiled = compile_workflow(WORKFLOW)
+    try:
+        return compiled.invoke(
+            initial_compiler_state("run_deliv", instruction="test"),
+            workflow_run_config("run_deliv"),
+        )
+    finally:
+        workspace.clear_workspace_for_tests()
+
+
+def test_missing_deliverable_fails_step(monkeypatch: pytest.MonkeyPatch, tmp_path) -> None:
+    with pytest.raises(WorkflowStepFailed) as exc_info:
+        _run_with_deliverables(monkeypatch, tmp_path, [{"name": "docs/prd.md", "content": ""}])
+    assert "prd.md" in str(exc_info.value.message) or "交付物" in str(exc_info.value.message)
+
+
+def test_present_deliverable_passes(monkeypatch: pytest.MonkeyPatch, tmp_path) -> None:
+    (tmp_path / "docs").mkdir()
+    (tmp_path / "docs" / "prd.md").write_text("# PRD", encoding="utf-8")
+    result = _run_with_deliverables(monkeypatch, tmp_path, [{"name": "docs/prd.md", "content": ""}])
+    assert result["status"] == "passed"
+
+
+def test_empty_deliverables_skips_check(monkeypatch: pytest.MonkeyPatch, tmp_path) -> None:
+    result = _run_with_deliverables(monkeypatch, tmp_path, [])
+    assert result["status"] == "passed"

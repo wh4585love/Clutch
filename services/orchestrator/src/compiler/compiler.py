@@ -72,6 +72,24 @@ def _handle_start(state: CompilerState, _node: dict[str, Any], _workflow: dict[s
     }
 
 
+def _check_agent_deliverables(agent_dict: dict[str, Any] | None) -> tuple[str, list[str]]:
+    """Verify agent-declared deliverable files landed in the workspace (Agent 模块 5)."""
+    names = [
+        str(item.get("name", "")).strip()
+        for item in (agent_dict or {}).get("deliverables") or []
+        if isinstance(item, dict) and str(item.get("name", "")).strip()
+    ]
+    if not names:
+        return "passed", []
+    from src.workspace import get_workspace
+
+    if get_workspace() is None:
+        return "passed", []
+    from src.evaluator import run_checks
+
+    return run_checks([{"type": "file_exists", "path": name} for name in names])
+
+
 def _handle_agent_task(
     state: CompilerState,
     node: dict[str, Any],
@@ -141,6 +159,43 @@ def _handle_agent_task(
             node_id=node_id,
             agent=result.agent,
             message=result.output,
+        )
+    deliv_result, deliv_logs = _check_agent_deliverables(agent_dict)
+    task_logs.extend(deliv_logs)
+    for line in deliv_logs:
+        _stream_compiler_log(state, line, node_id=node_id)
+    if deliv_result == "failed":
+        from src.chat_events import chat_message
+        from src.preferences_storage import tr
+        from src.workflow_cancel import WorkflowStepFailed
+
+        summary = "\n".join(deliv_logs[-3:]) if deliv_logs else ""
+        deliv_message = tr(
+            f"Step «{label or pending_agent}» finished but declared deliverables are missing — downstream steps skipped.\n\n{summary}",
+            f"步骤「{label or pending_agent}」已执行，但声明的交付物缺失，后续步骤已跳过。\n\n{summary}",
+        )
+        failure_message = chat_message(
+            "Evaluator",
+            deliv_message,
+            status="FAILED",
+            badge_text="DELIVERABLES MISSING",
+        )
+        task_logs.append(tagged(TAG_WORKFLOW, deliv_message.splitlines()[0]))
+        _stream_compiler_log(state, task_logs[-1], node_id=node_id)
+        emit_workflow_agent_step(
+            run_id,
+            {
+                "new_messages": [result.message, failure_message],
+                "active_node_id": node_id,
+                "active_agent": result.agent,
+                "status": "failed",
+            },
+        )
+        raise WorkflowStepFailed(
+            run_id=run_id,
+            node_id=node_id,
+            agent=result.agent,
+            message=deliv_message,
         )
     emit_workflow_agent_step(
         run_id,

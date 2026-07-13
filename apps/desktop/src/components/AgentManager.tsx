@@ -1101,8 +1101,6 @@ export function AgentManager({
                   <span className="text-xs font-semibold text-neutral-900">{t('Deliverables Config & State Update Rules')}</span>
                 </div>
 
-                <UnderDevelopmentNotice variant="compact" />
-
                 <p className="text-[10px] text-neutral-400 block pb-1">
                   {t('Define the scheduled file assets produced by this agent. If orchestrators find these assets absent, rejection alerts trigger:')}
                 </p>
