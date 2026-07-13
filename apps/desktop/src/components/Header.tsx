@@ -45,7 +45,7 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <header
-      className="fixed top-0 right-0 h-[64px] bg-background/85 backdrop-blur-md border-b border-outline-variant z-40 flex items-center justify-between pr-2 select-none transition-[left] duration-200 ease-out"
+      className="fixed top-0 right-0 h-[48px] bg-background/85 backdrop-blur-md border-b border-outline-variant z-40 flex items-center justify-between pr-2 select-none transition-[left] duration-200 ease-out"
       style={{
         left: sidebarOpen ? SIDEBAR_EXPANDED_WIDTH_PX : SIDEBAR_COLLAPSED_WIDTH_PX,
         paddingLeft: HEADER_BREADCRUMB_LEFT_PADDING_PX,
@@ -76,7 +76,7 @@ export const Header: React.FC<HeaderProps> = ({
             type="button"
             data-testid="mode-coding"
             onClick={() => onAppModeChange('coding')}
-            className={`px-3 py-1.5 text-[11px] rounded-md transition-all cursor-pointer ${
+            className={`px-3 py-1 text-[11px] rounded-md transition-all cursor-pointer ${
               appMode === 'coding'
                 ? 'bg-surface-bright text-on-surface font-bold shadow-sm'
                 : 'text-on-surface-variant hover:text-on-surface font-medium'
@@ -88,7 +88,7 @@ export const Header: React.FC<HeaderProps> = ({
             type="button"
             data-testid="mode-design"
             onClick={() => onAppModeChange('design')}
-            className={`px-3 py-1.5 text-[11px] rounded-md transition-all cursor-pointer ${
+            className={`px-3 py-1 text-[11px] rounded-md transition-all cursor-pointer ${
               appMode === 'design'
                 ? 'bg-surface-bright text-on-surface font-bold shadow-sm'
                 : 'text-on-surface-variant hover:text-on-surface font-medium'
