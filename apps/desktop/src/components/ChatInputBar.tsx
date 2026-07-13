@@ -604,7 +604,7 @@ export const ChatInputBar: React.FC<ChatInputBarProps> = ({
   return (
     <div
       ref={containerRef}
-      className={`relative w-full bg-white border shadow-xl rounded-xl transition-all ${
+      className={`relative w-full bg-white border shadow-xl rounded-3xl transition-all ${
         isDragging
           ? 'border-primary/60 ring-2 ring-primary/20'
           : 'border-outline-variant focus-within:ring-2 focus-within:ring-primary/10'
@@ -614,7 +614,7 @@ export const ChatInputBar: React.FC<ChatInputBarProps> = ({
       onDrop={handleDrop}
     >
       {showHybridNotice ? (
-        <div className="flex items-start gap-2 px-3 py-2 text-[11px] leading-snug text-amber-900 bg-amber-50 border-b border-amber-200/80 rounded-t-xl">
+        <div className="flex items-start gap-2 px-3 py-2 text-[11px] leading-snug text-amber-900 bg-amber-50 border-b border-amber-200/80 rounded-t-3xl">
           <span className="flex-1">{hybridNotice}</span>
           <button
             type="button"
@@ -774,8 +774,34 @@ export const ChatInputBar: React.FC<ChatInputBarProps> = ({
         </div>
       )}
 
-      {/* Text area row */}
-      <div className="flex items-center gap-1.5 px-2 py-1.5">
+      {/* Text area row — Codex-style: textarea on top, controls row below */}
+      <div className="flex flex-col px-3 pt-3 pb-2">
+        <textarea
+          ref={textareaRef}
+          data-testid="chat-input"
+          value={inputValue}
+          onChange={handleInputChange}
+          onCompositionStart={() => {
+            compositionActiveRef.current = true;
+          }}
+          onCompositionEnd={() => {
+            compositionActiveRef.current = false;
+          }}
+          onKeyDown={handleKeyDown}
+          onPaste={handlePaste}
+          className="w-full border-none focus:ring-0 text-[14px] text-on-surface bg-transparent px-1 pt-1 pb-1 resize-none min-h-[52px] max-h-[180px] placeholder:text-on-surface-variant/50 outline-none leading-6"
+          placeholder={
+            isFlowRefining
+              ? t('@Agent your feedback (Hybrid) — auto-continues downstream; Stop to pause')
+              : isMultiAgent && selectedWorkflowId
+              ? t('Describe what you want this workflow to do...')
+              : isMultiAgent
+              ? t('Ask @Agent or describe your workflow...')
+              : t('Ask your AI Agent anything...')
+          }
+          rows={1}
+        />
+        <div className="flex items-center gap-1.5 pt-1.5">
         {/* + Attach button */}
         <div className="relative flex-shrink-0">
           <button
@@ -850,32 +876,7 @@ export const ChatInputBar: React.FC<ChatInputBarProps> = ({
           )}
         </div>
 
-        {/* Textarea */}
-        <textarea
-          ref={textareaRef}
-          data-testid="chat-input"
-          value={inputValue}
-          onChange={handleInputChange}
-          onCompositionStart={() => {
-            compositionActiveRef.current = true;
-          }}
-          onCompositionEnd={() => {
-            compositionActiveRef.current = false;
-          }}
-          onKeyDown={handleKeyDown}
-          onPaste={handlePaste}
-          className="w-full border-none focus:ring-0 text-[13px] text-on-surface bg-transparent pt-[6px] pb-[2px] resize-none min-h-8 max-h-[140px] placeholder:text-on-surface-variant/60 outline-none leading-5"
-          placeholder={
-            isFlowRefining
-              ? t('@Agent your feedback (Hybrid) — auto-continues downstream; Stop to pause')
-              : isMultiAgent && selectedWorkflowId
-              ? t('Describe what you want this workflow to do...')
-              : isMultiAgent
-              ? t('Ask @Agent or describe your workflow...')
-              : t('Ask your AI Agent anything...')
-          }
-          rows={1}
-        />
+        <div className="flex-1" />
 
         {/* Right controls */}
         <div className="flex items-center gap-1 flex-shrink-0">
@@ -952,7 +953,7 @@ export const ChatInputBar: React.FC<ChatInputBarProps> = ({
               type="button"
               data-testid="chat-stop"
               onClick={onStopRun}
-              className="w-8 h-8 flex items-center justify-center rounded-full bg-neutral-900 text-white hover:bg-black transition-all"
+              className="w-9 h-9 flex items-center justify-center rounded-full bg-neutral-900 text-white hover:bg-black transition-all"
               title={t('Stop')}
               aria-label={t('Stop')}
             >
@@ -964,14 +965,15 @@ export const ChatInputBar: React.FC<ChatInputBarProps> = ({
             data-testid="chat-send"
             onClick={handleSend}
             disabled={!canSend}
-            className={`w-8 h-8 flex items-center justify-center rounded-full transition-all ${
+            className={`w-9 h-9 flex items-center justify-center rounded-full transition-all ${
               canSend
                 ? 'bg-primary text-white hover:opacity-90'
                 : 'bg-surface-container text-on-surface-variant/40 cursor-not-allowed'
             }`}
           >
-            <LegacyIcon name="arrow_upward" className="text-[17px]" />
+            <LegacyIcon name="arrow_upward" className="text-[18px]" />
           </button>
+        </div>
         </div>
       </div>
 

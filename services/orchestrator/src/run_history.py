@@ -94,6 +94,13 @@ def upsert_session(record: dict[str, Any]) -> dict[str, Any]:
     return _mutate_records(mutate)
 
 
+def find_run_record(run_id: str) -> dict[str, Any] | None:
+    for record in _load_records():
+        if record.get("run_id") == run_id:
+            return dict(record)
+    return None
+
+
 def update_run_record(run_id: str, patch: dict[str, Any]) -> dict[str, Any] | None:
     def mutate(records: list[dict[str, Any]]) -> dict[str, Any] | None:
         for index, record in enumerate(records):

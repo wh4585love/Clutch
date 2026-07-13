@@ -26,6 +26,7 @@ import { getAgentCapabilityTier } from '../services/agentCapabilityTiers';
 import { AgentNativeCapabilityHint } from './AgentNativeCapabilityHint';
 import { AgentCliModelHint } from './AgentCliModelHint';
 import { FullscreenModalOverlay } from './ui/FullscreenModalOverlay';
+import { SettingsSelect } from './ui/SettingsSelect';
 
 export function AgentLogo({
   name,
@@ -155,6 +156,7 @@ export function AgentManager({
   });
   const [isGeneratingPrompt, setIsGeneratingPrompt] = useState(false);
   const [promptGenerateError, setPromptGenerateError] = useState<string | null>(null);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const toggleModule = (moduleNumber: number) => {
     setExpandedModules((prev) => ({ ...prev, [moduleNumber]: !prev[moduleNumber] }));
@@ -329,6 +331,7 @@ export function AgentManager({
     setIsSkillsAttachOpen(false);
     setExpandedModules({ 3: false, 4: false, 5: false });
     setPromptGenerateError(null);
+    setSaveError(null);
     setIsModalOpen(true);
   };
 
@@ -352,6 +355,7 @@ export function AgentManager({
     setIsSkillsAttachOpen(false);
     setExpandedModules({ 3: false, 4: false, 5: false });
     setPromptGenerateError(null);
+    setSaveError(null);
     setIsModalOpen(true);
   };
 
@@ -403,14 +407,15 @@ export function AgentManager({
 
   const handleSave = () => {
     if (!name.trim()) {
-      console.warn('Please enter Agent Name');
+      setSaveError(t('Please enter Agent Name'));
       return;
     }
 
     if (agentType === 'ollama-cli' && !ollamaModel.trim()) {
-      console.warn('Please select an Ollama model');
+      setSaveError(t('Please select an Ollama model'));
       return;
     }
+    setSaveError(null);
 
     const todayStr = new Date().toISOString().replace('T', ' ').substring(0, 16);
 
@@ -889,8 +894,8 @@ export function AgentManager({
               {/* 🧩 MODULE 1: Identity & Engine */}
               <div className="p-4 bg-neutral-50/30 border border-neutral-200/60 rounded-xl space-y-3.5 animate-fade-in">
                 <div className="flex items-center gap-1.5 pb-2 border-b border-neutral-200/40">
-                  <span className="text-[9.5px] font-extrabold text-neutral-800 bg-neutral-100 border border-neutral-200 px-1.5 py-0.2 rounded font-mono tracking-wider uppercase">{t('Module 1')}</span>
-                  <span className="text-[10.5px] font-extrabold text-[#111111] font-mono tracking-wide uppercase">{t('Identity & Driving Engine')}</span>
+                  <span className="text-[10px] font-semibold text-neutral-500 bg-neutral-100 px-2 py-0.5 rounded-full">{t('Module 1')}</span>
+                  <span className="text-xs font-semibold text-neutral-900">{t('Identity & Driving Engine')}</span>
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 pb-1">
@@ -918,17 +923,14 @@ export function AgentManager({
                         </p>
                       </div>
                     ) : (
-                      <select
+                      <SettingsSelect
                         value={agentType}
-                        onChange={(e) => setAgentType(e.target.value as AgentTypeId)}
-                        className="w-full px-3 py-1.5 text-xs border border-neutral-200 focus:outline-none focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900/20 bg-white rounded-lg font-sans text-neutral-800"
-                      >
-                        {agentTypeOptions.map((option) => (
-                          <option key={option.id} value={option.id}>
-                            {option.label}
-                          </option>
-                        ))}
-                      </select>
+                        onChange={(value) => setAgentType(value as AgentTypeId)}
+                        options={agentTypeOptions.map((option) => ({
+                          value: option.id,
+                          label: option.label,
+                        }))}
+                      />
                     )}
                     {modalMode !== 'edit' && agentTypeOptions.length === 1 && (
                       <p className="text-[9.5px] text-amber-700 bg-amber-50 border border-amber-200 rounded-lg px-3 py-2 mt-2 leading-relaxed">
@@ -948,20 +950,23 @@ export function AgentManager({
                         {t('No models configured yet. Add API keys or image/video models under Settings → Models first.')}
                       </p>
                     ) : (
-                      <select
+                      <SettingsSelect
                         value={modelId}
-                        onChange={(e) => setModelId(e.target.value)}
-                        className="w-full px-3 py-1.5 text-xs border border-neutral-200 focus:outline-none focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900/20 bg-white rounded-lg font-mono text-neutral-800"
-                      >
-                        <option value="">{t('Use global default model')}</option>
-                        {clutchModels.map((model) => (
-                          <option key={model.id} value={model.id}>
-                            {model.name}
-                            {model.modelKind === 'image' ? ` (${t('Image')})` : ''}
-                            {model.modelKind === 'video' ? ` (${t('Video')})` : ''}
-                          </option>
-                        ))}
-                      </select>
+                        onChange={setModelId}
+                        options={[
+                          { value: '', label: t('Use global default model') },
+                          ...clutchModels.map((model) => ({
+                            value: model.id,
+                            label: `${model.name}${
+                              model.modelKind === 'image'
+                                ? ` (${t('Image')})`
+                                : model.modelKind === 'video'
+                                  ? ` (${t('Video')})`
+                                  : ''
+                            }`,
+                          })),
+                        ]}
+                      />
                     )}
                     <p className="text-[9.5px] text-neutral-400 leading-relaxed">
                       {t('Clutch agents run on Sidecar models (chat, image, or video). Leave empty to follow the global model in chat.')}
@@ -1006,17 +1011,11 @@ export function AgentManager({
                          )}
                        </div>
                      ) : (
-                       <select
+                       <SettingsSelect
                          value={ollamaModel}
-                         onChange={(e) => setOllamaModel(e.target.value)}
-                         className="w-full px-3 py-1.5 text-xs border border-neutral-200 focus:outline-none focus:border-neutral-900 focus:ring-1 focus:ring-neutral-900/20 bg-white rounded-lg font-mono text-neutral-800"
-                       >
-                         {ollamaModels.map((model) => (
-                           <option key={model} value={model}>
-                             {model}
-                           </option>
-                         ))}
-                       </select>
+                         onChange={setOllamaModel}
+                         options={ollamaModels.map((model) => ({ value: model, label: model }))}
+                       />
                      )}
                      <p className="text-[9.5px] text-neutral-400 leading-relaxed">
                        {t('Select which locally installed Ollama model this agent uses at runtime.')}
@@ -1043,8 +1042,8 @@ export function AgentManager({
               {/* 🧩 MODULE 2: Persona & Soul (System Prompt) */}
               <div className="p-4 bg-neutral-50/30 border border-neutral-200/60 rounded-xl space-y-2.5">
                 <div className="flex items-center gap-1.5 pb-2 border-b border-neutral-200/40">
-                  <span className="text-[9.5px] font-extrabold text-neutral-800 bg-neutral-100 border border-neutral-200 px-1.5 py-0.2 rounded font-mono tracking-wider uppercase">{t('Module 2')}</span>
-                  <span className="text-[10.5px] font-extrabold text-[#111111] font-mono tracking-wide uppercase">{t('System Persona & Soul')}</span>
+                  <span className="text-[10px] font-semibold text-neutral-500 bg-neutral-100 px-2 py-0.5 rounded-full">{t('Module 2')}</span>
+                  <span className="text-xs font-semibold text-neutral-900">{t('System Persona & Soul')}</span>
                 </div>
                 
                 <div className="space-y-1.5">
@@ -1066,8 +1065,8 @@ export function AgentManager({
               <div className="p-4 bg-neutral-50/30 border border-neutral-200/60 rounded-xl space-y-4">
                 <div className="flex items-center justify-between pb-2 border-b border-neutral-200/40">
                   <div className="flex items-center gap-1.5">
-                    <span className="text-[9.5px] font-extrabold text-neutral-800 bg-neutral-100 border border-neutral-200 px-1.5 py-0.2 rounded font-mono tracking-wider uppercase">{t('Module 3')}</span>
-                    <span className="text-[10.5px] font-extrabold text-[#111111] font-mono tracking-wide uppercase">{t('Attach Agent Skills')}</span>
+                    <span className="text-[10px] font-semibold text-neutral-500 bg-neutral-100 px-2 py-0.5 rounded-full">{t('Module 3')}</span>
+                    <span className="text-xs font-semibold text-neutral-900">{t('Attach Agent Skills')}</span>
                   </div>
                   {capabilityTier === 'full' ? (
                     <span className="text-[8.5px] uppercase font-mono bg-neutral-100 text-neutral-700 border border-neutral-200/60 px-2 py-0.5 rounded">{t('Local-First')}</span>
@@ -1084,8 +1083,8 @@ export function AgentManager({
               {/* 🧩 MODULE 4: Bind MCP Hub Servers */}
               <div className="p-4 bg-neutral-50/30 border border-neutral-200/60 rounded-xl space-y-3">
                 <div className="flex items-center gap-1.5 pb-2 border-b border-neutral-200/40">
-                  <span className="text-[9.5px] font-extrabold text-neutral-800 bg-neutral-100 border border-neutral-200 px-1.5 py-0.2 rounded font-mono tracking-wider uppercase">{t('Module 4')}</span>
-                  <span className="text-[10.5px] font-extrabold text-[#111111] font-mono tracking-wide uppercase">{t('MCP Hub Server Bindings')}</span>
+                  <span className="text-[10px] font-semibold text-neutral-500 bg-neutral-100 px-2 py-0.5 rounded-full">{t('Module 4')}</span>
+                  <span className="text-xs font-semibold text-neutral-900">{t('MCP Hub Server Bindings')}</span>
                 </div>
 
                 {capabilityTier === 'full' ? (
@@ -1098,8 +1097,8 @@ export function AgentManager({
               {/* 🧩 MODULE 5: Deliverables Output Constraints */}
               <div className="p-4 bg-neutral-50/30 border border-neutral-200/60 rounded-xl space-y-3">
                 <div className="flex items-center gap-1.5 pb-2 border-b border-neutral-200/40">
-                  <span className="text-[9.5px] font-extrabold text-neutral-800 bg-neutral-100 border border-neutral-200 px-1.5 py-0.2 rounded font-mono tracking-wider uppercase">{t('Module 5')}</span>
-                  <span className="text-[10.5px] font-extrabold text-[#111111] font-mono tracking-wide uppercase">{t('Deliverables Config & State Update Rules')}</span>
+                  <span className="text-[10px] font-semibold text-neutral-500 bg-neutral-100 px-2 py-0.5 rounded-full">{t('Module 5')}</span>
+                  <span className="text-xs font-semibold text-neutral-900">{t('Deliverables Config & State Update Rules')}</span>
                 </div>
 
                 <UnderDevelopmentNotice variant="compact" />
@@ -1161,6 +1160,11 @@ export function AgentManager({
 
             {/* Modal Actions */}
             <div className="h-14 border-t border-neutral-100 flex items-center justify-end px-5 gap-2.5 bg-neutral-50/30 flex-shrink-0">
+              {saveError && (
+                <p className="text-[11px] font-semibold text-red-600 mr-auto" role="alert">
+                  {saveError}
+                </p>
+              )}
               <button
                 onClick={() => setIsModalOpen(false)}
                 className={BTN_GHOST}

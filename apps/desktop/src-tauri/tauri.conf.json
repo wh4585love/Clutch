@@ -19,7 +19,9 @@
         "title": "Clutch",
         "width": 1280,
         "height": 800,
-        "resizable": true
+        "resizable": true,
+        "titleBarStyle": "Overlay",
+        "hiddenTitle": true
       }
     ],
     "security": {
@@ -41,14 +43,18 @@
         "script-src": "'self' 'unsafe-eval' tauri: asset: https://cdn.tailwindcss.com",
         "font-src": "'self' asset: data: tauri:"
       },
-      "capabilities": ["default"]
+      "capabilities": [
+        "default"
+      ]
     }
   },
   "bundle": {
     "active": true,
     "targets": "all",
     "createUpdaterArtifacts": false,
-    "externalBin": ["binaries/orchestrator"],
+    "externalBin": [
+      "binaries/orchestrator"
+    ],
     "icon": [
       "icons/32x32.png",
       "icons/128x128.png",

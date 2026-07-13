@@ -372,6 +372,11 @@ def _touch_session(
     if not existing and not session_has_persistable_content(state):
         return
     patch: dict[str, Any] = {**fields, "run_id": run_id}
+    if existing and existing.get("workspace_id"):
+        # A session is born in one project; switching the active project in the
+        # sidebar must not rebind (and thus retarget) an existing session.
+        patch["workspace_id"] = existing["workspace_id"]
+        patch["workspace_name"] = existing.get("workspace_name", "")
     if title is not None:
         patch["title"] = title[:80]
     if workflow_id is not None:
@@ -1488,6 +1493,17 @@ async def _llm_chat_reply(
 
     workspace = get_workspace()
     cwd = workspace.get("workspace_path") if workspace else None
+    # Runs are bound to a workspace at creation (sidebar groups sessions by
+    # project); switching the active project must not retarget an in-flight run.
+    from src.run_history import find_run_record
+    from src.workspace import workspace_path_by_id
+
+    _record = find_run_record(str(state.get("run_id", "")))
+    _bound_ws = str(_record.get("workspace_id") or "") if _record else ""
+    if _bound_ws:
+        _bound_path = workspace_path_by_id(_bound_ws)
+        if _bound_path:
+            cwd = _bound_path
     llm_only_logs: list[str] = []
 
     from src.hybrid_concurrency import HybridPlainChatRejected
@@ -3851,6 +3867,32 @@ async def connect_tool_endpoint(body: ToolConnectRequest) -> dict[str, Any]:
 
     try:
         return connect_tool(body.tool_id)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail={"message": str(exc)}) from exc
+
+
+class CustomToolRequest(BaseModel):
+    name: str
+    binary: str
+    engine: str = "claude-cli"
+
+
+@app.post("/api/tools/custom")
+async def add_custom_tool_endpoint(body: CustomToolRequest) -> dict[str, Any]:
+    from src.tools_status import add_custom_tool
+
+    try:
+        return add_custom_tool(body.name, body.binary, body.engine)
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail={"message": str(exc)}) from exc
+
+
+@app.delete("/api/tools/custom/{tool_id}")
+async def remove_custom_tool_endpoint(tool_id: str) -> dict[str, Any]:
+    from src.tools_status import remove_custom_tool
+
+    try:
+        return remove_custom_tool(tool_id)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail={"message": str(exc)}) from exc
 

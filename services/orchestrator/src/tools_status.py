@@ -10,6 +10,7 @@ from __future__ import annotations
 
 import json
 import os
+import re
 import shutil
 import sys
 from pathlib import Path
@@ -264,8 +265,44 @@ def _client_path(app_name: str) -> str | None:
     return None
 
 
+def _read_config() -> dict[str, Any]:
+    path = config_path()
+    if not path.is_file():
+        return {}
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return {}
+    return data if isinstance(data, dict) else {}
+
+
+def _write_config(data: dict[str, Any]) -> None:
+    path = config_path()
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(data, indent=2), encoding="utf-8")
+
+
+def load_custom_candidates() -> list[dict[str, str]]:
+    """User-registered CLI tools from tools.json `custom` (e.g. a claude proxy wrapper)."""
+    out: list[dict[str, str]] = []
+    for item in _read_config().get("custom") or []:
+        if isinstance(item, dict) and item.get("id") and item.get("binary"):
+            out.append(
+                {
+                    "id": str(item["id"]),
+                    "name": str(item.get("name") or item["id"]),
+                    "binary": str(item["binary"]),
+                    "description": str(
+                        item.get("description") or f"Custom CLI tool ({item['binary']})"
+                    ),
+                    "icon": "terminal",
+                }
+            )
+    return out
+
+
 def _candidate_by_id(tool_id: str) -> dict[str, str] | None:
-    for cand in CLI_CANDIDATES + CLIENT_CANDIDATES:
+    for cand in CLI_CANDIDATES + load_custom_candidates() + CLIENT_CANDIDATES:
         if cand["id"] == tool_id:
             return cand
     return None
@@ -392,25 +429,19 @@ def resolve_agent_type_for_tool(tool_id: str) -> str | None:
 
 
 def load_connected_ids() -> set[str]:
-    path = config_path()
-    if not path.is_file():
-        return set()
-    try:
-        data = json.loads(path.read_text(encoding="utf-8"))
-    except (json.JSONDecodeError, OSError):
-        return set()
-    connected = data.get("connected")
+    connected = _read_config().get("connected")
     if not isinstance(connected, list):
         return set()
-    known = {cand["id"] for cand in CLI_CANDIDATES + CLIENT_CANDIDATES}
+    known = {
+        cand["id"] for cand in CLI_CANDIDATES + load_custom_candidates() + CLIENT_CANDIDATES
+    }
     return {str(item) for item in connected if item in known}
 
 
 def save_connected_ids(connected: set[str]) -> None:
-    path = config_path()
-    path.parent.mkdir(parents=True, exist_ok=True)
-    payload = {"connected": sorted(connected)}
-    path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
+    data = _read_config()
+    data["connected"] = sorted(connected)
+    _write_config(data)
 
 
 def list_tools_status(*, include_all: bool = False) -> list[dict[str, Any]]:
@@ -442,12 +473,15 @@ def list_tools_status(*, include_all: bool = False) -> list[dict[str, Any]]:
         return False
 
     connected = load_connected_ids()
+    custom_ids = {cand["id"] for cand in load_custom_candidates()}
     tools: list[dict[str, Any]] = []
-    for cand in CLI_CANDIDATES:
+    for cand in CLI_CANDIDATES + load_custom_candidates():
         path = resolve_tool_binary(cand["id"])
         installed = path is not None
         recommended = cand["id"] in RECOMMENDED_CLI_IDS
-        if not installed:
+        is_custom = cand["id"] in custom_ids
+        if not installed and not is_custom:
+            # Custom tools always stay visible so the user can fix or remove them.
             if include_all:
                 if not recommended:
                     continue
@@ -466,6 +500,7 @@ def list_tools_status(*, include_all: bool = False) -> list[dict[str, Any]]:
                 "registered": _is_registered(cand["id"]),
                 "agentType": resolve_agent_type_for_tool(cand["id"]),
                 "recommended": recommended,
+                "custom": is_custom,
             }
         )
     for cand in CLIENT_CANDIDATES:
@@ -495,6 +530,77 @@ def list_tools_status(*, include_all: bool = False) -> list[dict[str, Any]]:
         )
     return tools
 
+
+
+def add_custom_tool(name: str, binary: str, engine: str) -> dict[str, Any]:
+    """Register a user CLI (e.g. `claude-proxy`) cloning a built-in engine recipe."""
+    from src.engine_router import (
+        CLI_ROUTING_CONFIGS,
+        load_custom_cli_configs,
+        save_custom_cli_configs,
+    )
+
+    name = name.strip()
+    binary = binary.strip()
+    if not name or not binary:
+        raise ValueError("Name and binary are required")
+    resolved = shutil.which(binary) or (
+        binary if Path(binary).is_file() and os.access(binary, os.X_OK) else None
+    )
+    if not resolved:
+        raise ValueError(f"Binary not found on PATH: {binary}")
+    template = CLI_ROUTING_CONFIGS.get(engine)
+    if not isinstance(template, dict) or "binary_name" not in template:
+        raise ValueError(f"Unknown engine template: {engine}")
+
+    slug = re.sub(r"[^a-z0-9]+", "-", name.lower()).strip("-") or "tool"
+    tool_id = f"custom-{slug}"
+    if _candidate_by_id(tool_id) is not None:
+        raise ValueError(f"Tool already exists: {tool_id}")
+
+    data = _read_config()
+    custom = data.get("custom") if isinstance(data.get("custom"), list) else []
+    custom.append({"id": tool_id, "name": name, "binary": binary, "engine": engine})
+    data["custom"] = custom
+    _write_config(data)
+
+    config = {**template, "tool_id": tool_id, "binary_name": binary}
+    customs = load_custom_cli_configs()
+    customs[tool_id] = config
+    save_custom_cli_configs(customs)
+    CLI_ROUTING_CONFIGS[tool_id] = config
+
+    connected = load_connected_ids()
+    connected.add(tool_id)
+    save_connected_ids(connected)
+    return {"id": tool_id, "name": name, "binary": binary, "engine": engine, "path": resolved}
+
+
+def remove_custom_tool(tool_id: str) -> dict[str, Any]:
+    from src.engine_router import (
+        CLI_ROUTING_CONFIGS,
+        load_custom_cli_configs,
+        save_custom_cli_configs,
+    )
+
+    data = _read_config()
+    custom = [
+        item
+        for item in (data.get("custom") or [])
+        if not (isinstance(item, dict) and item.get("id") == tool_id)
+    ]
+    if len(custom) == len(data.get("custom") or []):
+        raise ValueError(f"Unknown custom tool: {tool_id}")
+    data["custom"] = custom
+    connected = {item for item in (data.get("connected") or []) if item != tool_id}
+    data["connected"] = sorted(str(item) for item in connected)
+    _write_config(data)
+
+    customs = load_custom_cli_configs()
+    if customs.pop(tool_id, None) is not None:
+        save_custom_cli_configs(customs)
+    CLI_ROUTING_CONFIGS.pop(tool_id, None)
+    return {"id": tool_id, "removed": True}
 
 
 def connect_tool(tool_id: str) -> dict[str, Any]:

@@ -291,7 +291,7 @@ export const SystemPreferencesModal: React.FC<SystemPreferencesModalProps> = ({
 
                 <div className="space-y-6">
                   {/* Avatar Settings Section */}
-                  <div className="bg-surface-container/30 p-6 rounded-2xl border border-outline/30 space-y-4">
+                  <div className="bg-surface-container/30 p-4 rounded-xl border border-outline/30 space-y-2.5">
                     <h3 className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
                       {t("Profile Avatar")}
                     </h3>
@@ -340,7 +340,7 @@ export const SystemPreferencesModal: React.FC<SystemPreferencesModalProps> = ({
                   </div>
 
                   {/* Profile Name Settings Section */}
-                  <div className="bg-surface-container/30 p-6 rounded-2xl border border-outline/30 space-y-4">
+                  <div className="bg-surface-container/30 p-4 rounded-xl border border-outline/30 space-y-2.5">
                     <h3 className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
                       {t("Profile Name")}
                     </h3>
@@ -356,7 +356,7 @@ export const SystemPreferencesModal: React.FC<SystemPreferencesModalProps> = ({
                   </div>
 
                   {/* Font Size Settings Section */}
-                  <div className="bg-surface-container/30 p-6 rounded-2xl border border-outline/30 space-y-4">
+                  <div className="bg-surface-container/30 p-4 rounded-xl border border-outline/30 space-y-2.5">
                     <h3 className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
                       {t('Font Size')}
                     </h3>
@@ -374,7 +374,7 @@ export const SystemPreferencesModal: React.FC<SystemPreferencesModalProps> = ({
                   </div>
 
                   {/* Language Settings Section */}
-                  <div className="bg-surface-container/30 p-6 rounded-2xl border border-outline/30 space-y-4">
+                  <div className="bg-surface-container/30 p-4 rounded-xl border border-outline/30 space-y-2.5">
                     <h3 className="text-xs font-bold uppercase tracking-wider text-on-surface-variant">
                       {t('Language')}
                     </h3>

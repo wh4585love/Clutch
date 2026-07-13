@@ -3,6 +3,7 @@ import type { WorkspaceInfo } from '../../../services/workspaceApi';
 import type { MainView, AppWorkspaceMode } from '../../../types';
 import { LegacyIcon } from '../../../components/ui/LegacyIcon';
 import { NAV_CONFIG } from '../navConfig';
+import { beginWindowDrag } from '../../windowDrag';
 
 export type SidebarCollapsedRailProps = {
   currentView: MainView;
@@ -65,7 +66,7 @@ export const SidebarCollapsedRailMacos: React.FC<SidebarCollapsedRailProps> = ({
   );
 
   return (
-    <div className="flex h-full min-h-0 flex-col items-center gap-2 overflow-hidden pt-3 pb-2">
+    <div data-tauri-drag-region onMouseDown={beginWindowDrag} className="flex h-full min-h-0 flex-col items-center gap-2 overflow-hidden pt-10 pb-2">
       <div className="flex w-full flex-col items-stretch gap-0.5">
         {collapsedNavButton('chat', NAV_CONFIG.chat.icon, t(NAV_CONFIG.chat.labelKey), t(NAV_CONFIG.chat.shortLabelKey), onNewChat, currentView === 'chat')}
         {appMode !== 'design' ? (

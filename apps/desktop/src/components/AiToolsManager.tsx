@@ -4,6 +4,8 @@ import {
   disconnectTool,
   fetchToolsStatus,
   autoConfigureTool,
+  addCustomTool,
+  removeCustomTool,
   type AiToolStatus,
 } from '../services/toolsApi';
 import { CLI_INSTALL_GUIDES } from '../services/cliInstallGuides';
@@ -81,6 +83,38 @@ export default function AiToolsManager({ isModalStyle }: AiToolsManagerProps) {
       await refresh();
     } catch (err: any) {
       setError(err?.message || 'Failed to auto-configure tool.');
+    } finally {
+      setPendingId(null);
+    }
+  };
+
+  const [customName, setCustomName] = useState('');
+  const [customBinary, setCustomBinary] = useState('');
+  const [customEngine, setCustomEngine] = useState('claude-cli');
+
+  const handleAddCustom = async () => {
+    setPendingId('custom-form');
+    setError(null);
+    try {
+      await addCustomTool(customName, customBinary, customEngine);
+      setCustomName('');
+      setCustomBinary('');
+      await refresh();
+    } catch (err: any) {
+      setError(err?.message || 'Failed to add custom tool.');
+    } finally {
+      setPendingId(null);
+    }
+  };
+
+  const handleRemoveCustom = async (id: string) => {
+    setPendingId(id);
+    setError(null);
+    try {
+      await removeCustomTool(id);
+      await refresh();
+    } catch (err: any) {
+      setError(err?.message || 'Failed to remove custom tool.');
     } finally {
       setPendingId(null);
     }
@@ -178,6 +212,19 @@ export default function AiToolsManager({ isModalStyle }: AiToolsManagerProps) {
                           >
                             {pendingId === tool.id ? t('Disconnecting…') : t('Disconnect')}
                           </button>
+                          {tool.custom && (
+                            <>
+                              <span className="text-neutral-200 text-xs">|</span>
+                              <button
+                                type="button"
+                                onClick={() => void handleRemoveCustom(tool.id)}
+                                disabled={pendingId !== null}
+                                className="text-[10px] font-semibold text-neutral-400 hover:text-red-500 transition-colors disabled:opacity-50"
+                              >
+                                {t('Remove')}
+                              </button>
+                            </>
+                          )}
                           {!tool.registered && (
                             <>
                               <span className="text-neutral-200 text-xs">|</span>
@@ -275,6 +322,51 @@ export default function AiToolsManager({ isModalStyle }: AiToolsManagerProps) {
                   ))}
                 </div>
               )}
+            </section>
+
+            <section className="text-left">
+              <h3 className="text-xs font-bold text-neutral-900 mb-4 flex items-center gap-2">
+                <span className="w-2 h-2 rounded-full bg-indigo-400"></span>
+                {t('Custom tool')}
+              </h3>
+              <div className="p-4 border border-dashed border-neutral-200 rounded-xl bg-neutral-50/50 flex flex-col gap-3">
+                <p className="text-[10px] text-neutral-400 leading-relaxed">
+                  {t('Register a CLI from your PATH (e.g. claude-proxy) and route it through a built-in engine recipe.')}
+                </p>
+                <div className="flex flex-wrap items-center gap-2">
+                  <input
+                    value={customName}
+                    onChange={(e) => setCustomName(e.target.value)}
+                    placeholder={t('Display name')}
+                    className="text-[11px] px-2.5 py-1.5 rounded-lg border border-neutral-200 bg-white outline-none focus:border-indigo-300 w-36"
+                  />
+                  <input
+                    value={customBinary}
+                    onChange={(e) => setCustomBinary(e.target.value)}
+                    placeholder={t('Binary name or path')}
+                    className="text-[11px] px-2.5 py-1.5 rounded-lg border border-neutral-200 bg-white outline-none focus:border-indigo-300 font-mono w-44"
+                  />
+                  <select
+                    value={customEngine}
+                    onChange={(e) => setCustomEngine(e.target.value)}
+                    className="text-[11px] px-2 py-1.5 rounded-lg border border-neutral-200 bg-white outline-none"
+                  >
+                    {['claude-cli', 'codex-cli', 'aider-cli', 'antigravity-cli', 'zcode-cli'].map((engine) => (
+                      <option key={engine} value={engine}>
+                        {t('Like')} {engine}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    type="button"
+                    onClick={() => void handleAddCustom()}
+                    disabled={!customName.trim() || !customBinary.trim() || pendingId !== null}
+                    className={`${BTN_PRIMARY} text-[10px] disabled:opacity-50`}
+                  >
+                    {pendingId === 'custom-form' ? t('Adding…') : t('Add Custom Tool')}
+                  </button>
+                </div>
+              </div>
             </section>
 
             <section className="text-left">

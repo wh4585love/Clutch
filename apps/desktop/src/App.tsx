@@ -31,6 +31,7 @@ import {
 } from './services/themeApi';
 import { DEFAULT_FONT_SIZE, type AppFontSize } from './services/fontSizePreference';
 import { isWindowsHost, useHostOs } from './platform/hostOs';
+import { installTitlebarDrag } from './platform/windowDrag';
 import { LanguageProvider, useLanguage } from './components/LanguageContext';
 import { OnboardingWizard } from './components/onboarding/OnboardingWizard';
 import { CONTENT_TOP_WITH_BANNER, SIDEBAR_COLLAPSED_WIDTH_PX, SIDEBAR_EXPANDED_WIDTH_PX, CHROME_PANEL_TOGGLE_TOP_CSS, CHROME_PANEL_TOGGLE_HALF_PX } from './constants/layout';
@@ -108,7 +109,8 @@ function MainLayout() {
   const hostOs = useHostOs();
   const isWindows = isWindowsHost(hostOs);
   const { state: clutchState } = useClutchState();
-  const [appVersion, setAppVersion] = useState<string>('1.0.0');
+  // Fallback for browser dev where Tauri getVersion() is unavailable.
+  const [appVersion, setAppVersion] = useState<string>(__APP_VERSION__);
 
   useEffect(() => {
     if (isTauri()) {
@@ -1717,8 +1719,28 @@ function MainLayout() {
   const currentThemeObj = THEME_PRESETS.find(t => t.id === themeId) || THEME_PRESETS[0];
   const themeVars = currentThemeObj.variables;
 
+  // Portaled overlays (FullscreenModalOverlay etc.) render outside the root
+  // div, so theme variables must also live on <html> for them to inherit.
+  useEffect(() => {
+    const root = document.documentElement;
+    for (const [key, value] of Object.entries(themeVars)) {
+      root.style.setProperty(key, value);
+    }
+    return () => {
+      for (const key of Object.keys(themeVars)) {
+        root.style.removeProperty(key);
+      }
+    };
+  }, [themeVars]);
+
+  // macOS overlay title bar: top strip drags the window (Codex-style).
+  useEffect(() => installTitlebarDrag(), []);
+
   const activeSession = sessions.find(s => s.run_id === sessionRunId);
   const sessionTitle = activeSession ? (activeSession.title || activeSession.workflow_id || activeSession.run_id) : '';
+  const rightPanelAvailable =
+    (appMode === 'coding' || appMode === 'design')
+    && !['workflows', 'agents', 'tools', 'skills', 'mcp', 'models', 'appearance', 'settings'].includes(currentView);
 
   return (
     <div 
@@ -1736,6 +1758,8 @@ function MainLayout() {
         sidebarOpen={sidebarOpen}
         appMode={appMode}
         onAppModeChange={handleAppModeChange}
+        rightPanelOpen={rightPanelOpen}
+        onToggleRightPanel={rightPanelAvailable ? () => setRightPanelOpen(!rightPanelOpen) : undefined}
       />
 
       {!isWindows ? (
@@ -1774,6 +1798,8 @@ function MainLayout() {
           isOpenState={sidebarOpen}
           setIsOpenState={setSidebarOpen}
           isMultiAgent={isMultiAgent}
+          userName={userName}
+          userAvatar={userAvatar}
           sessions={sessions}
           shellSnapshotRunIds={shellSnapshotRunIds}
           activeSessionId={sessionRunId}
@@ -1997,7 +2023,7 @@ function MainLayout() {
         )}
 
         {/* Right collapsible rail — Coding + Design (Design defaults collapsed) */}
-        {(appMode === 'coding' || appMode === 'design') && !['workflows', 'agents', 'tools', 'skills', 'mcp', 'models', 'appearance', 'settings'].includes(currentView) ? (
+        {rightPanelAvailable ? (
               <RightPanel
                 activeTab={rightTab}
                 setActiveTab={setRightTab}

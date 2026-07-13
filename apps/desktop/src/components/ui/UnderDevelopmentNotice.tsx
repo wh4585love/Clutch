@@ -24,9 +24,11 @@ export const UnderDevelopmentNotice: React.FC<UnderDevelopmentNoticeProps> = ({
   }
 
   return (
-    <div className={`flex items-center gap-2 px-3 py-2.5 rounded-xl ${ALERT_INFO} ${className}`}>
-      <LegacyIcon name="construction" className="text-[16px] shrink-0 text-neutral-500" />
-      <p className="text-[11px] font-semibold leading-snug">{t('Feature under active development')}</p>
+    <div
+      className={`flex items-center gap-2 px-3 py-2 rounded-lg border border-dashed border-outline-variant/50 text-on-surface-variant/70 ${className}`}
+    >
+      <LegacyIcon name="construction" className="text-[14px] shrink-0" />
+      <p className="text-[11px] leading-snug">{t('Feature under active development')}</p>
     </div>
   );
 };

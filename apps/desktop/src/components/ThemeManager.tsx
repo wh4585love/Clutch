@@ -115,6 +115,57 @@ export const THEME_PRESETS: ThemePreset[] = [
       '--color-on-secondary': '#ffffff',
     }
   },
+  {
+    id: 'midnight',
+    name: 'Midnight',
+    description: 'Deep charcoal panels with soft high-contrast type for late-night sessions.',
+    icon: 'dark_mode',
+    colors: {
+      bg: '#0f0f10',
+      surface: '#161618',
+      text: '#ececef',
+      primary: '#fafafa',
+      border: '#2e2e32',
+    },
+    variables: {
+      '--color-background': '#0f0f10',
+      '--color-surface': '#161618',
+      '--color-surface-container-low': '#1a1a1d',
+      '--color-surface-container': '#1e1e21',
+      '--color-surface-container-high': '#252528',
+      '--color-surface-container-highest': '#2e2e32',
+      '--color-surface-container-lowest': '#131315',
+      '--color-surface-dim': '#141416',
+      '--color-surface-bright': '#1e1e21',
+      '--color-surface-variant': '#232327',
+      '--color-on-surface': '#ececef',
+      '--color-on-surface-variant': '#9d9da6',
+      '--color-on-background': '#ececef',
+      '--color-outline': '#2e2e32',
+      '--color-outline-variant': '#2e2e32',
+      '--color-primary': '#fafafa',
+      '--color-on-primary': '#111113',
+      '--color-secondary': '#a1a1aa',
+      '--color-on-secondary': '#111113',
+      // Raw palette inversion: hardcoded bg-white / text-neutral-* utilities
+      // resolve to these vars in Tailwind v4, so contrast *pairs* stay valid
+      // (bg-white+text-neutral-900 → dark card + light text) without a
+      // per-component token migration.
+      '--color-white': '#161618',
+      '--color-black': '#fafafa',
+      '--color-neutral-50': '#1c1c1f',
+      '--color-neutral-100': '#232327',
+      '--color-neutral-200': '#2e2e33',
+      '--color-neutral-300': '#3f3f46',
+      '--color-neutral-400': '#8f8f98',
+      '--color-neutral-500': '#a6a6af',
+      '--color-neutral-600': '#c0c0c8',
+      '--color-neutral-700': '#d1d1d8',
+      '--color-neutral-800': '#e2e2e7',
+      '--color-neutral-900': '#f2f2f5',
+      '--color-neutral-950': '#fafafa',
+    }
+  },
 ];
 
 interface ThemeManagerProps {

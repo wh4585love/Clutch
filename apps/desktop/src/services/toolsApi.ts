@@ -12,6 +12,7 @@ export interface AiToolStatus {
   registered: boolean;
   recommended?: boolean;
   agentType?: string | null;
+  custom?: boolean;
 }
 
 export async function fetchToolsStatus(): Promise<AiToolStatus[]> {
@@ -28,6 +29,29 @@ export async function connectTool(toolId: string): Promise<void> {
     body: JSON.stringify({ tool_id: toolId }),
   });
   if (!response.ok) throw new Error(`connect tool failed (${response.status})`);
+}
+
+export async function addCustomTool(
+  name: string,
+  binary: string,
+  engine: string,
+): Promise<void> {
+  const response = await sidecarFetch(`${BASE}/api/tools/custom`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ name, binary, engine }),
+  });
+  if (!response.ok) {
+    const body = await response.json().catch(() => null);
+    throw new Error(body?.detail?.message || `add custom tool failed (${response.status})`);
+  }
+}
+
+export async function removeCustomTool(toolId: string): Promise<void> {
+  const response = await sidecarFetch(`${BASE}/api/tools/custom/${encodeURIComponent(toolId)}`, {
+    method: 'DELETE',
+  });
+  if (!response.ok) throw new Error(`remove custom tool failed (${response.status})`);
 }
 
 export async function disconnectTool(toolId: string): Promise<void> {

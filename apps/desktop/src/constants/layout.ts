@@ -1,5 +1,5 @@
 /** Fixed app chrome — Header height for main content offset. */
-export const APP_HEADER_HEIGHT_PX = 64;
+export const APP_HEADER_HEIGHT_PX = 48;
 
 /** Fixed footer bar height (`h-8`). */
 export const APP_FOOTER_HEIGHT_PX = 32;

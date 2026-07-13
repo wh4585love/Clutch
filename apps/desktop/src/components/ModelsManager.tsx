@@ -653,8 +653,10 @@ export const ModelsManager: React.FC<ModelsManagerProps> = ({
     return t('Not tested yet — press Test when you want to verify.');
   })();
 
+  // No selection is an empty state, not an error — rose only for real failures
+  // (verify failed, or a selected model that is no longer available).
   const statusTone =
-    !activeAvailable || activeVerify === 'failed'
+    activeVerify === 'failed' || (selectedModel && !activeAvailable)
       ? 'rose'
       : activeVerify === 'ok'
         ? 'emerald'

@@ -12,7 +12,7 @@ PREFERENCES_ENV = "CLUTCH_PREFERENCES_DIR"
 DEFAULT_THEME_ID = "pristine-light"
 DEFAULT_LANGUAGE = "en"
 DEFAULT_FONT_SIZE = "default"
-ALLOWED_THEME_IDS = frozenset({"pristine-light", "nordic-frost", "amber-warm"})
+ALLOWED_THEME_IDS = frozenset({"pristine-light", "nordic-frost", "amber-warm", "midnight"})
 ALLOWED_LANGUAGES = frozenset({"en", "zh"})
 ALLOWED_FONT_SIZES = frozenset({"small", "default", "large", "xlarge", "xxlarge"})
 
