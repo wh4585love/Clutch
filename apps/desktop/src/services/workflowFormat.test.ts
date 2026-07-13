@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  compilerToAgentPreviewFlow,
   compilerToPreviewFlow,
   formatCanvasIncompatibilities,
   getCanvasIncompatibilities,
@@ -116,5 +117,39 @@ describe('workflowFormat', () => {
     expect(back?.label).toBe('failed');
     expect(back?.style.strokeDasharray).toBe('5 3');
     expect(edges.find((e) => e.id === 'e3')?.label).toBe('passed');
+  });
+
+  it('collapses gates into edges at agent altitude', () => {
+    const workflow = {
+      id: 'wf',
+      name: 'wf',
+      version: 1,
+      nodes: [
+        { id: 'ba', type: 'agent_task', data: { label: 'BA 分析', agent: 'BA' } },
+        { id: 'gate', type: 'check', data: { label: '产物门禁' } },
+        { id: 'review', type: 'human_gate', data: { label: '评审' } },
+        { id: 'dev', type: 'agent_task', data: { label: 'Dev 实现', agent: 'Dev' } },
+        { id: 'end', type: 'end', data: { label: 'Done' } },
+      ],
+      edges: [
+        { id: 'e1', source: 'start', target: 'ba' },
+        { id: 'e2', source: 'ba', target: 'gate' },
+        { id: 'e3', source: 'gate', target: 'review', data: { when: 'passed' } },
+        { id: 'e4', source: 'gate', target: 'ba', data: { when: 'failed' } },
+        { id: 'e5', source: 'review', target: 'dev', data: { when: 'approve' } },
+        { id: 'e6', source: 'review', target: 'ba', data: { when: 'reject' } },
+        { id: 'e7', source: 'dev', target: 'end' },
+      ],
+    };
+    const { nodes, edges } = compilerToAgentPreviewFlow(workflow);
+    expect(nodes.map((n) => n.id).sort()).toEqual(['agent:BA', 'agent:Dev', 'end', 'start'].sort());
+    const forward = edges.find((e) => e.source === 'agent:BA' && e.target === 'agent:Dev');
+    expect(forward?.label).toContain('产物门禁');
+    expect(forward?.label).toContain('✋ 评审');
+    expect(forward?.animated).toBeFalsy();
+    const back = edges.find((e) => e.source === 'agent:BA' && e.target === 'agent:BA');
+    expect(back?.animated).toBe(true);
+    expect(edges.some((e) => e.source === 'start' && e.target === 'agent:BA')).toBe(true);
+    expect(edges.some((e) => e.source === 'agent:Dev' && e.target === 'end')).toBe(true);
   });
 });

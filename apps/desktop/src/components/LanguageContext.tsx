@@ -540,6 +540,8 @@ const zhTranslations: Record<string, string> = {
   "Canvas": "画布",
   "Complex workflow: please edit in JSON mode": "复杂流程：请用 JSON 编辑",
   "Read-only preview — edit in JSON mode": "只读预览 — 请在 JSON 模式编辑",
+  "Node view": "节点视图",
+  "Agent view": "智能体视图",
   "Built-in template: please save as copy after editing": "内置模板：编辑后请「另存为副本」",
   "Request failed": "请求失败",
   "JSON must contain id, nodes, and edges fields": "JSON 必须包含 id、nodes、edges 字段",

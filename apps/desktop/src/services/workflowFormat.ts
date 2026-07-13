@@ -230,6 +230,91 @@ export function compilerToPreviewFlow(workflow: CompilerWorkflow): {
   return { nodes, edges };
 }
 
+const BACK_WHENS = new Set(['failed', 'reject']);
+
+/** Agent-altitude preview: only agents + start/end survive as nodes; check and
+ * human_gate nodes collapse into the edges that pass through them. */
+export function compilerToAgentPreviewFlow(workflow: CompilerWorkflow): {
+  nodes: PreviewFlowNode[];
+  edges: PreviewFlowEdge[];
+} {
+  const byId = new Map(workflow.nodes.map((n) => [n.id, n]));
+  const isTerminal = (id: string): boolean =>
+    id === 'start' || ['agent_task', 'end'].includes(byId.get(id)?.type ?? '');
+  const previewId = (id: string): string => {
+    const node = byId.get(id);
+    if (node?.type === 'agent_task')
+      return `agent:${String((node.data as { agent?: string }).agent || node.id)}`;
+    return id;
+  };
+
+  const nodes: PreviewFlowNode[] = [];
+  const seen = new Set<string>();
+  const pushNode = (id: string, kind: string, label: string, sub: string, position: { x: number; y: number }) => {
+    if (seen.has(id)) return;
+    seen.add(id);
+    nodes.push({ id, type: 'preview', position, data: { label, kind, sub } });
+  };
+  pushNode('start', 'start', 'start', '', { x: 120, y: 10 });
+  workflow.nodes.forEach((node, idx) => {
+    const position = node.position ?? { x: 120, y: 140 + idx * 130 };
+    const data = node.data as { label?: string; agent?: string };
+    if (node.type === 'agent_task')
+      pushNode(previewId(node.id), 'agent_task', String(data.agent || data.label || node.id), data.label ?? '', position);
+    else if (node.type === 'end') pushNode(node.id, 'end', data.label ?? 'end', '', position);
+  });
+  const firstAgent = nodes.find((n) => n.data.kind === 'agent_task');
+  if (firstAgent) nodes[0].position = { x: firstAgent.position.x, y: firstAgent.position.y - 110 };
+
+  // Collapse paths through non-terminal nodes; merge parallel edges by direction.
+  const merged = new Map<string, { source: string; target: string; segments: string[][]; isBack: boolean }>();
+  const sources = ['start', ...workflow.nodes.filter((n) => n.type === 'agent_task').map((n) => n.id)];
+  for (const origin of sources) {
+    const walk = (current: string, segments: string[], visited: Set<string>) => {
+      for (const edge of workflow.edges.filter((e) => e.source === current)) {
+        const hop = [...segments];
+        const when = edge.data?.when;
+        if (when) hop.push(when);
+        const target = byId.get(edge.target);
+        if (isTerminal(edge.target)) {
+          const isBack = hop.some((s) => BACK_WHENS.has(s));
+          const source = previewId(origin);
+          const to = previewId(edge.target);
+          const key = `${source} ${to} ${isBack}`;
+          const entry = merged.get(key) ?? { source, target: to, segments: [], isBack };
+          entry.segments.push(hop);
+          merged.set(key, entry);
+        } else if (target && !visited.has(target.id)) {
+          const data = target.data as { label?: string };
+          const glyph = target.type === 'human_gate' ? '✋' : '✓';
+          walk(target.id, [...hop, `${glyph} ${data.label ?? target.id}`], new Set(visited).add(target.id));
+        }
+      }
+    };
+    walk(origin, [], new Set());
+  }
+
+  const edges: PreviewFlowEdge[] = [...merged.values()].map((entry, idx) => {
+    const { source, target } = entry;
+    const color = entry.isBack ? '#dc2626' : '#64748b';
+    const label = entry.segments
+      .map((seg) => seg.join(' · '))
+      .filter(Boolean)
+      .join(' ／ ');
+    return {
+      id: `ae${idx}`,
+      source,
+      target,
+      label: label || undefined,
+      animated: entry.isBack,
+      style: entry.isBack ? { stroke: color, strokeDasharray: '5 3' } : { stroke: color },
+      labelStyle: { fill: entry.isBack ? '#dc2626' : '#334155', fontWeight: 600 },
+      markerEnd: { type: 'arrowclosed', color },
+    };
+  });
+  return { nodes, edges };
+}
+
 export function compilerToCanvas(workflow: CompilerWorkflow, icon = 'account_tree'): WorkflowDef {
   const agentNodes = workflow.nodes.filter((n) => n.type === 'agent_task');
 

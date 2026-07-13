@@ -21,6 +21,7 @@ import '@xyflow/react/dist/style.css';
 import { WorkflowJsonPanel } from './WorkflowJsonPanel';
 import {
   canvasToCompiler,
+  compilerToAgentPreviewFlow,
   compilerToCanvas,
   compilerToPreviewFlow,
   formatCompilerJson,
@@ -315,14 +316,18 @@ export const WorkflowOrchestration: React.FC<WorkflowOrchestrationProps> = ({
   };
 
   // Read-only React Flow preview for canvas-incompatible workflows (JSON stays authoritative).
+  const [previewAltitude, setPreviewAltitude] = useState<'node' | 'agent'>('node');
   const previewFlow = useMemo(() => {
     if (canvasCompatible) return null;
     try {
-      return compilerToPreviewFlow(parseCompilerJson(jsonText));
+      const compiler = parseCompilerJson(jsonText);
+      return previewAltitude === 'agent'
+        ? compilerToAgentPreviewFlow(compiler)
+        : compilerToPreviewFlow(compiler);
     } catch {
       return null;
     }
-  }, [canvasCompatible, jsonText]);
+  }, [canvasCompatible, jsonText, previewAltitude]);
 
   // Layout conversion
   React.useEffect(() => {
@@ -851,11 +856,37 @@ export const WorkflowOrchestration: React.FC<WorkflowOrchestrationProps> = ({
                 />
               ) : !canvasCompatible && previewFlow ? (
                 <div className="flex-1 relative bg-neutral-50/20 min-h-0">
-                  <div className="absolute top-3 left-3 z-10 text-[10px] font-mono bg-white/90 border border-neutral-200 text-neutral-500 px-2 py-1 rounded-lg shadow-2xs">
-                    {t('Read-only preview — edit in JSON mode')}
+                  <div className="absolute top-3 left-3 z-10 flex items-center gap-2">
+                    <span className="text-[10px] font-mono bg-white/90 border border-neutral-200 text-neutral-500 px-2 py-1 rounded-lg shadow-2xs">
+                      {t('Read-only preview — edit in JSON mode')}
+                    </span>
+                    <div className="flex rounded-lg border border-neutral-200/80 overflow-hidden text-[10px] font-bold bg-white/90 shadow-2xs">
+                      <button
+                        type="button"
+                        onClick={() => setPreviewAltitude('node')}
+                        className={`px-2 py-1 transition-colors ${
+                          previewAltitude === 'node'
+                            ? 'bg-neutral-900 text-white'
+                            : 'text-neutral-600 hover:bg-neutral-100'
+                        }`}
+                      >
+                        {t('Node view')}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setPreviewAltitude('agent')}
+                        className={`px-2 py-1 border-l border-neutral-200/80 transition-colors ${
+                          previewAltitude === 'agent'
+                            ? 'bg-neutral-900 text-white'
+                            : 'text-neutral-600 hover:bg-neutral-100'
+                        }`}
+                      >
+                        {t('Agent view')}
+                      </button>
+                    </div>
                   </div>
                   <ReactFlow
-                    key={`preview-${activeItem?.id ?? ''}`}
+                    key={`preview-${activeItem?.id ?? ''}-${previewAltitude}`}
                     nodes={previewFlow.nodes as unknown as Node[]}
                     edges={previewFlow.edges as unknown as Edge[]}
                     nodeTypes={previewNodeTypes}
