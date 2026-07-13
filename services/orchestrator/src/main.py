@@ -4245,6 +4245,157 @@ async def stop_run(run_id: str) -> dict[str, str]:
     return {"run_id": run_id, "status": state["status"]}
 
 
+async def _async_handoff_summarization_task(
+    run_id: str,
+    websocket: WebSocket,
+    workspace_path: str,
+    sources: list[str],
+    target: str,
+    task: str,
+    prompt: str,
+    file_refs: list[str] | None,
+    dispatch_history: list[dict[str, object]] | None,
+    lane_transcripts: list[dict[str, object]] | None,
+    custom_file_name: str,
+    entry_id: str,
+    chat_messages: list[dict[str, object]] | None = None,
+):
+    try:
+        from src.interactive_pty_runtime import interactive_pty_manager, configured_cli_binaries
+        from src.handoff_summarizer import find_recent_temp_handoff_file, strip_yaml_frontmatter
+
+        HANDOFF_INJECTION_PROMPT = (
+            "[System: Please generate a handoff summary file of our current conversation. "
+            "Save it to the OS temporary directory as a markdown file starting with 'handoff-'. "
+            "You can use your handoff skill or write it directly. "
+            "Print the exact path once saved.]"
+        )
+
+        agent_handoff_summary = None
+        state = _run_states.get(run_id)
+        if state:
+            lanes = state.get("pty_lanes") or []
+            cli_binaries = configured_cli_binaries()
+            injected_any = False
+            for source_name in sources:
+                target_lane = None
+                for lane in lanes:
+                    if str(lane.get("configured_agent_name") or "").lower() == source_name.lower():
+                        target_lane = lane
+                        break
+                if not target_lane:
+                    for lane in lanes:
+                        agent_type = str(lane.get("agent_type") or "").lower()
+                        clean_type = agent_type.replace("-cli", "")
+                        if clean_type == source_name.lower() or source_name.lower() in clean_type:
+                            target_lane = lane
+                            break
+                if target_lane:
+                    agent_type = target_lane.get("agent_type")
+                    is_cli_agent = (
+                        agent_type in ["claude-cli", "opencode-cli", "mimo-cli", "codex-cli"]
+                        or source_name.lower() in cli_binaries
+                    )
+                    if is_cli_agent:
+                        lane_id = target_lane.get("lane_id")
+                        session_key = f"{run_id}::{lane_id}"
+                        session = interactive_pty_manager.get(session_key)
+                        if session and session.alive():
+                            try:
+                                # Ensure we clear any half-typed commands, write prompt, and execute with \r
+                                session.write_input("\r")
+                                await asyncio.sleep(0.15)
+                                session.write_input(HANDOFF_INJECTION_PROMPT)
+                                await asyncio.sleep(0.15)
+                                session.write_input("\r")
+                                injected_any = True
+                            except Exception as e:
+                                logger.warning("Failed to inject handoff prompt into session %s: %s", session_key, e)
+
+            if injected_any:
+                # Poll for the newly generated handoff file (up to 30.0s to accommodate slower LLM thought/write cycles)
+                recent_file_path = None
+                for _ in range(30):
+                    recent_file_path = find_recent_temp_handoff_file(max_age_seconds=45.0)
+                    if recent_file_path:
+                        break
+                    await asyncio.sleep(1.0)
+
+                if recent_file_path:
+                    try:
+                        from pathlib import Path
+                        p = Path(recent_file_path)
+                        raw_content = p.read_text(encoding="utf-8", errors="replace")
+                        agent_handoff_summary = strip_yaml_frontmatter(raw_content)
+                        p.unlink(missing_ok=True)
+                    except Exception as exc:
+                        logger.warning("Failed to process temp handoff file %s: %s", recent_file_path, exc)
+
+        from src.handoff_writer import write_handoff_markdown
+        def do_write():
+            return write_handoff_markdown(
+                workspace_path,
+                sources=sources,
+                target=target,
+                task=task,
+                prompt=prompt,
+                file_refs=file_refs,
+                dispatch_history=dispatch_history,
+                lane_transcripts=lane_transcripts,
+                chat_messages=chat_messages,
+                agent_handoff_summary=agent_handoff_summary,
+                skip_llm_summary=False,
+                custom_file_name=custom_file_name,
+            )
+        
+        await asyncio.to_thread(do_write)
+        
+        state = _run_states.get(run_id)
+        if state:
+            log = [dict(e) for e in (state.get("dispatch_log") or [])]
+            updated = False
+            for entry in log:
+                if entry.get("id") == entry_id:
+                    if entry.get("step_status") == "generating_handoff":
+                        entry["step_status"] = "opening_terminal"
+                        updated = True
+                    break
+            if updated:
+                from src.terminal_orchestra import transition_handoff_layout
+                new_lanes = transition_handoff_layout(state, sources, target)
+                patch = {"dispatch_log": log, "pty_lanes": new_lanes}
+                state = _merge_patch(state, patch)
+                _run_states[run_id] = state
+                _commit_run_state(run_id, state)
+                try:
+                    await _notify_run_state(websocket, run_id, state, patch)
+                except Exception as ws_exc:
+                    logger.warning("Failed to notify ws in async handoff: %s", ws_exc)
+    except Exception as exc:
+        logger.exception("Async handoff summarization failed: %s", exc)
+        state = _run_states.get(run_id)
+        if state:
+            log = [dict(e) for e in (state.get("dispatch_log") or [])]
+            updated = False
+            for entry in log:
+                if entry.get("id") == entry_id:
+                    if entry.get("step_status") == "generating_handoff":
+                        entry["step_status"] = "opening_terminal"
+                        updated = True
+                    break
+            if updated:
+                from src.terminal_orchestra import transition_handoff_layout
+                new_lanes = transition_handoff_layout(state, sources, target)
+                patch = {"dispatch_log": log, "pty_lanes": new_lanes}
+                state = _merge_patch(state, patch)
+                _run_states[run_id] = state
+                _commit_run_state(run_id, state)
+                try:
+                    await _notify_run_state(websocket, run_id, state, patch)
+                except Exception as ws_exc:
+                    logger.warning("Failed to notify ws in async handoff error: %s", ws_exc)
+
+
 @app.websocket("/ws/runs/{run_id}")
 async def ws_run(websocket: WebSocket, run_id: str) -> None:
     if auth_required():
@@ -4800,6 +4951,7 @@ async def ws_run(websocket: WebSocket, run_id: str) -> None:
                     workspace_path = (
                         str(workspace.get("workspace_path", "")).strip() if workspace else ""
                     )
+                    is_handoff = preview.dispatch_mode == "handoff"
                     patch = confirm_dispatch(
                         state,
                         preview=preview,
@@ -4817,6 +4969,7 @@ async def ws_run(websocket: WebSocket, run_id: str) -> None:
                             if isinstance(payload.get("lane_transcripts"), list)
                             else None
                         ),
+                        skip_llm_summary=is_handoff,
                     )
                     sessions_to_close = patch.pop("pty_sessions_to_close", [])
                     for session_key in sessions_to_close:
@@ -4825,6 +4978,30 @@ async def ws_run(websocket: WebSocket, run_id: str) -> None:
                     _commit_run_state(run_id, state)
                     _touch_session(run_id, title=text.strip()[:80] or "New session", status=state["status"])
                     await _notify_run_state(websocket, run_id, state, patch)
+
+                    if is_handoff:
+                        dispatch_log = patch.get("dispatch_log", [])
+                        added_entry = dispatch_log[-1] if dispatch_log else None
+                        if added_entry:
+                            entry_id = added_entry["id"]
+                            custom_file_name = added_entry["handoff_file"]
+                            asyncio.create_task(
+                                _async_handoff_summarization_task(
+                                    run_id=run_id,
+                                    websocket=websocket,
+                                    workspace_path=workspace_path or ".",
+                                    sources=list(chip_list if chip_list is not None else preview.sources),
+                                    target=preview.target,
+                                    task=preview.task,
+                                    prompt=text,
+                                    file_refs=preview.file_refs,
+                                    dispatch_history=list(state.get("dispatch_log") or [])[:-1],
+                                    lane_transcripts=payload.get("lane_transcripts"),
+                                    custom_file_name=custom_file_name,
+                                    entry_id=entry_id,
+                                    chat_messages=list(state.get("messages") or []),
+                                )
+                            )
                     if sessions_to_close:
                         await websocket.send_text(
                             json.dumps(
@@ -4876,7 +5053,7 @@ async def ws_run(websocket: WebSocket, run_id: str) -> None:
             elif isinstance(payload, dict) and payload.get("action") == "pty_session_stats":
                 from src.interactive_pty_runtime import interactive_pty_manager
 
-                sessions = interactive_pty_manager.list_alive_for_run(run_id)
+                sessions = interactive_pty_manager.list_alive_for_run(run_id, include_system=True)
                 await websocket.send_text(
                     json.dumps(
                         {
@@ -4934,6 +5111,12 @@ async def ws_run(websocket: WebSocket, run_id: str) -> None:
                 )
             elif isinstance(payload, dict) and payload.get("action") == "pty_inject_ack":
                 patch = {"pending_pty_inject": None}
+                log = list(state.get("dispatch_log") or [])
+                if log:
+                    last_entry = log[-1]
+                    if last_entry.get("step_status") and last_entry["step_status"] != "done":
+                        last_entry["step_status"] = "done"
+                        patch["dispatch_log"] = log
                 state = _merge_patch(state, patch)
                 _commit_run_state(run_id, state)
                 await _notify_run_state(websocket, run_id, state, patch)

@@ -5,10 +5,46 @@
 
 ## Current Status
 
-- **阶段：** **v1.2.1 已发布**（2026-07-11，**仅 macOS**）— Chat/Design/Models hotfix + Sidecar 热更客户端（D37）
-- **Release：** [v1.2.1](https://github.com/fancy1108/Clutch/releases/tag/v1.2.1) Latest（macOS）· Win 继续 [v1.1.1](https://github.com/fancy1108/Clutch/releases/tag/v1.1.1)
-- **Git：** `main` @ `1b6899b` · tag `v1.2.1`
-- **Windows：** 本版不发安装包
+- **阶段：** **v1.2.2 已发布（macOS）**（2026-07-11）— Windows MSI/NSIS 已在 CI 构建成功，待挂到 Release（本机下载超时）
+- **Release：** [v1.2.2](https://github.com/fancy1108/Clutch/releases/tag/v1.2.2) · tag on `main` @ `7fa6901`
+- **Git：** `main` / `dev` @ `7fa6901`
+- **macOS：** DMG + SHA256SUMS 已上传；Homebrew tap 已 bump
+- **Windows：** Actions artifact `clutch-windows-x64` @ run [29158434326](https://github.com/actions/runs/29158434326) — 需 `gh release upload`
+
+## Next Actions
+
+- 挂 Windows MSI/NSIS 到 Release（网络恢复后）
+- 等 updater assets workflow 完成
+- Windows 实体机 smoke（可选）
+
+## Recent Sessions
+
+## 2026-07-12 会话（交接 Handoff 派发流程耗时优化与界面交互体验改进）
+
+- **性能优化**：将 Handoff 派发时 LLM 生成 Smart Summary 的耗时从同步改成了非阻塞后台任务异步生成，结合最新 12,000 字符的智能输入截断策略，彻底解决了界面可能因云端模型慢响应而卡死的问题。
+- **Handoff 质量提升与动态注入轮询（智能体原生 Handoff 触发）**：针对大部分用户可能未安装特定 `/handoff` 命令行技能的情况，我们设计了更具普适性的智能提示词注入方案。当触发交接时，如果源端是 CLI 智能体，后台会自动向其终端 PTY 注入包含详细指示的系统级 Prompt（要求其总结对话，写入 OS 临时目录并以 `handoff-` 开头命名，并输出路径）。后台随后以 1.0s 为步长、最高 30.0s 动态轮询检索临时目录（以兼容慢速 LLM 思维耗时），并允许最长 45s 的文件修改寿命检查；一旦检测到生成的文件，立即读取、清洗 YAML 头，并作为 `SOURCE OUTPUT` 装载，从而无需任何预装 Skill 即可 100% 捕获终端内交互式聊天细节。如果超时未生成，则平滑降级至外部 LLM 总结。
+- **PTY 模拟回车执行确认**：在注入提示词到终端 PTY 时，将换行符 `\n` 改为真正模拟回车提交的 `\r`（Carriage Return），并配合 150ms 缓冲延时，解决了提示词仅被打入输入框而未回车提交导致任务卡在输入区的问题。
+- **跨会话终端数据隔离修复**：修复了前端 `clutchState.ts` 内存 `Map` (`this._laneTranscripts`) 在切换/新建会话（`runId` 变化）时未进行清空的 Bug，彻底杜绝了上一个会话中其他智能体的终端报错历史泄露合并到新会话中全新智能体手交摘要中的数据污染问题。
+- **手交期间源终端展开与延时折叠**：重构了 Handoff 派发时的界面布局流。在 `generating_handoff` 期间，源端智能体终端保持展开（不折叠）状态以便用户能直观看到或执行命令行内的敏感写盘许可确认（如输入 `y` 确认）；一旦 Handoff 文件生成完毕、进入 `opening_terminal` 阶段后，才自动触发源端折叠并放大目标端终端。
+- **设计画布画布跨会话污染修复**：为 `<DesignWorkspace>` 组件引入了 `key={sessionRunId}`，强制 React 在切换左侧会话历史时完全销毁并重新初始化该组件，彻底解决了旧会话节点和缓存污染新会话画布的界面“串行”Bug。
+- **TUI 精细清洗**：重构了 `clean_pty_transcript` 方法，精细清洗过滤了 horizontal 边框线（如 `━━━━`）、填充块（`████`）、键盘操作指南（`tab 切换模式`/`ctrl+p` 等）、无用 headers 等 TUI 画布冗余元数据，让交接生成的 Handoff 文本内容整洁易读。
+- **状态机步骤渲染**：前端及后端增加了 `generating_handoff` -> `opening_terminal` -> `injecting_goal` -> `done` 的步骤流渲染，支持在卡片最底下一行完美呈现 Spinner 和国际化提示语，防止了头部 Badge 排版重叠。
+- **面板秒折叠**：发送交接时，立即在前端触发 `from @agent1` 来源面板的折叠，使用户获得极速交互响应。
+- **后台终端数修正与系统守护进程过滤**：在 `main.py` 中为 `list_alive_for_run` 传递了 `include_system=True` 以启用系统级 PTY/CLI 进程扫描；同时在 `interactive_pty_runtime.py` 的 `scan_system_cli_processes` 中增加了路径前缀过滤，排除了位于 `/usr/sbin/`、`/usr/libexec/`、`/System/` 和 `/sbin/` 的系统守护进程（如 `distnoted agent` 或 `cfprefsd agent`），确保后台终端统计仅精确匹配用户配置并运行的实际 CLI 智能体进程。
+- **校验**：本地 `./scripts/verify.sh` 通过，所有单元测试通过。
+
+## 2026-07-12 会话（修复 Codex 路径及多 CLI 终端消息注入时机问题）
+
+- **修复**：更新了 `~/.local/bin/codex` 软链接至最新的 `/Applications/ChatGPT.app/Contents/Resources/codex`（最新版的 dmg 将 `Codex.app` 更名为 `ChatGPT.app`）。
+- **优化**：在 `services/orchestrator/src/tools_status.py` 的 `_CLI_EXTRA_BIN_DIRS` 中增加了 `/Applications/ChatGPT.app/Contents/Resources` 和 `/Applications/Codex.app/Contents/Resources` 作为 fallback 路径。
+- **修复**：在 `apps/desktop/src/services/terminalOrchestraUtils.ts` 中，为 `mimo-cli`、`codex-cli`、`claude-cli` 和 `codebuddy-cli` 等所有重型交互式终端补全了 PTY 启动就绪检测（精确匹配各种语言提示语如 `输入消息`/`ctrl+p`/`write tests for`/`ask a question`/`for shortcuts`）与 warmup 时间策略，解决了终端未完全就绪就注入消息导致消息丢失的问题。
+- **验证**：本地运行 `./scripts/verify.sh` 校验成功。
+
+## 2026-07-11 会话（v1.2.2 发版）
+
+- PR [#60](https://github.com/fancy1108/Clutch/pull/60) merge → `main`；tag `v1.2.2`；`main`→`dev` 同步
+- macOS `release.yml` ✅（含 Homebrew tap sync）
+- Windows Build ✅；artifact 上传 Release 因本机下载超时未完成
 
 ### v1.2.1 发版清单
 

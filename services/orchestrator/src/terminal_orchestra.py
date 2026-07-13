@@ -369,6 +369,7 @@ def confirm_dispatch(
     target_configured_agent_id: str = "",
     target_configured_agent_name: str = "",
     lane_transcripts: list[dict[str, object]] | None = None,
+    skip_llm_summary: bool = False,
 ) -> dict[str, Any]:
     if preview.dispatch_mode == "switch":
         return _confirm_switch_dispatch(
@@ -388,6 +389,7 @@ def confirm_dispatch(
         target_configured_agent_id=target_configured_agent_id,
         target_configured_agent_name=target_configured_agent_name,
         lane_transcripts=lane_transcripts,
+        skip_llm_summary=skip_llm_summary,
     )
 
 
@@ -412,6 +414,27 @@ def _apply_dispatch_lane_layout(lanes: list[dict[str, Any]], target_lane_id: str
         if lid == tid:
             lane["collapsed"] = False
             lane["focused"] = True
+        else:
+            lane["collapsed"] = True
+            lane["focused"] = False
+
+
+def _apply_handoff_initial_layout(
+    lanes: list[dict[str, Any]],
+    target_lane_id: str,
+    source_lane_ids: list[str],
+) -> None:
+    """During handoff generation, keep source lanes expanded so the user can interact/confirm prompts. Keep target lane collapsed."""
+    for lane in lanes:
+        if lane.get("status") == "queued":
+            continue
+        lid = str(lane.get("lane_id", ""))
+        if lid in source_lane_ids:
+            lane["collapsed"] = False
+            lane["focused"] = True
+        elif lid == target_lane_id:
+            lane["collapsed"] = True
+            lane["focused"] = False
         else:
             lane["collapsed"] = True
             lane["focused"] = False
@@ -549,6 +572,7 @@ def _confirm_switch_dispatch(
                 "input_mode": preview.input_mode,
                 "dispatch_mode": "switch",
                 "file_refs": preview.file_refs,
+                "step_status": "opening_terminal",
                 "lane_sessions": _collect_lane_sessions(
                     lanes,
                     [target_lane_id],
@@ -600,6 +624,7 @@ def _confirm_switch_dispatch(
             "input_mode": preview.input_mode,
             "dispatch_mode": "switch",
             "file_refs": preview.file_refs,
+            "step_status": "opening_terminal",
             "lane_sessions": _collect_lane_sessions(
                 lanes + [new_lane],
                 ["lane_primary"],
@@ -627,6 +652,7 @@ def _confirm_handoff_dispatch(
     target_configured_agent_id: str = "",
     target_configured_agent_name: str = "",
     lane_transcripts: list[dict[str, object]] | None = None,
+    skip_llm_summary: bool = False,
 ) -> dict[str, Any]:
     sources = list(active_chips if active_chips is not None else preview.sources)
     if not sources:
@@ -641,6 +667,7 @@ def _confirm_handoff_dispatch(
         file_refs=preview.file_refs,
         dispatch_history=_dispatch_log(state),
         lane_transcripts=lane_transcripts,
+        skip_llm_summary=skip_llm_summary,
     )
 
     lanes = _lane_list(state)
@@ -706,8 +733,8 @@ def _confirm_handoff_dispatch(
 
     target_lane = focused_lane({"pty_lanes": lanes}) or {}
     target_lane_id = str(target_lane.get("lane_id", ""))
-    _apply_dispatch_lane_layout(lanes, target_lane_id)
     source_lane_ids = _source_lane_ids(lanes, sources)
+    _apply_handoff_initial_layout(lanes, target_lane_id, source_lane_ids)
     session_lane_ids = [*source_lane_ids]
     if target_lane_id and target_lane_id not in session_lane_ids:
         session_lane_ids.append(target_lane_id)
@@ -733,6 +760,7 @@ def _confirm_handoff_dispatch(
         "input_mode": preview.input_mode,
         "dispatch_mode": "handoff",
         "file_refs": preview.file_refs,
+        "step_status": "generating_handoff",
         "lane_sessions": _collect_lane_sessions(
             lanes,
             session_lane_ids,
@@ -857,3 +885,55 @@ def serialize_preview(preview: DispatchPreview) -> dict[str, Any]:
             for c in preview.chips
         ],
     }
+
+
+def transition_handoff_layout(
+    state: dict[str, Any],
+    sources: list[str],
+    target: str,
+) -> list[dict[str, Any]]:
+    """Collapse the source lanes and expand/focus the target lane after handoff generation completes."""
+    lanes = [dict(l) for l in (state.get("pty_lanes") or [])]
+    
+    # 1. Find target lane
+    target_lane = None
+    for lane in lanes:
+        if str(lane.get("configured_agent_name") or "").lower() == target.lower():
+            target_lane = lane
+            break
+    if not target_lane:
+        for lane in lanes:
+            agent_type = str(lane.get("agent_type") or "").lower()
+            clean_type = agent_type.replace("-cli", "")
+            if clean_type == target.lower() or target.lower() in clean_type:
+                target_lane = lane
+                break
+                
+    # 2. Find source lanes
+    source_lanes = []
+    for src in sources:
+        for lane in lanes:
+            if str(lane.get("configured_agent_name") or "").lower() == src.lower():
+                source_lanes.append(lane)
+                break
+            agent_type = str(lane.get("agent_type") or "").lower()
+            clean_type = agent_type.replace("-cli", "")
+            if clean_type == src.lower() or src.lower() in clean_type:
+                source_lanes.append(lane)
+                break
+                
+    # 3. Collapse sources, expand target
+    if target_lane:
+        target_lane["collapsed"] = False
+        target_lane["focused"] = True
+    for sl in source_lanes:
+        sl["collapsed"] = True
+        sl["focused"] = False
+        
+    # Also collapse any other non-target lanes to keep layout clean
+    for lane in lanes:
+        if target_lane and lane.get("lane_id") != target_lane.get("lane_id"):
+            lane["collapsed"] = True
+            lane["focused"] = False
+            
+    return lanes

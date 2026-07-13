@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
+import { Loader2 } from 'lucide-react';
 import { Terminal } from '@xterm/xterm';
 import { FitAddon } from '@xterm/addon-fit';
 import '@xterm/xterm/css/xterm.css';
@@ -104,11 +105,24 @@ export const TerminalLanePane: React.FC<TerminalLanePaneProps> = ({
   const refreshLayoutRef = useRef(refreshLayout);
   refreshLayoutRef.current = refreshLayout;
 
+  const [isInjectPending, setInjectPending] = useState(false);
   const flushPendingInject = useCallback(async () => {
     if (isQueued || isCompleted) return;
 
     const pending = clutchStore.getSnapshot().pending_pty_inject;
+    // If this lane has a pending inject, show loading overlay
+    if (pending && pending.lane_id === lane.lane_id) {
+      setInjectPending(true);
+    }
     if (!pending || pending.lane_id !== lane.lane_id) return;
+
+    if (pending.handoff_path) {
+      const dispatchLog = clutchStore.getSnapshot().dispatch_log ?? [];
+      const entry = dispatchLog.find((e) => e.handoff_path === pending.handoff_path);
+      if (entry && entry.step_status === 'generating_handoff') {
+        return;
+      }
+    }
 
     const dedupeKey = `${pending.lane_id}:${pending.prompt}:${pending.handoff_path ?? ''}`;
     if (consumedInjectRef.current === dedupeKey || injectInflightRef.current === dedupeKey) return;
@@ -130,6 +144,7 @@ export const TerminalLanePane: React.FC<TerminalLanePaneProps> = ({
         const ok = await clutchStore.submitPtyPrompt(lane.lane_id, pending.prompt, { warmupMs });
         if (ok) {
           consumedInjectRef.current = dedupeKey;
+          setInjectPending(false);
           await clutchStore.ackPendingPtyInject();
           refreshLayout();
           return;
@@ -138,6 +153,8 @@ export const TerminalLanePane: React.FC<TerminalLanePaneProps> = ({
       }
     } finally {
       if (injectInflightRef.current === dedupeKey) {
+        setInjectPending(false);
+
         injectInflightRef.current = null;
       }
     }

@@ -226,6 +226,8 @@ _CLI_EXTRA_BIN_DIRS: tuple[Path, ...] = (
     Path.home() / "bin",
     Path("/opt/homebrew/bin"),
     Path("/usr/local/bin"),
+    Path("/Applications/ChatGPT.app/Contents/Resources"),
+    Path("/Applications/Codex.app/Contents/Resources"),
 )
 
 
