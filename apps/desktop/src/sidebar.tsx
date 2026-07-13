@@ -120,6 +120,8 @@ interface SidebarProps {
   onDeleteRepositoryGroup?: (groupId: string) => void;
   onRenameRepositoryGroup?: (groupId: string) => void;
   onMoveWorkspaceToGroup?: (workspaceId: string, targetGroupId: string) => void;
+  userName?: string;
+  userAvatar?: string;
 }
 
 function formatRelativeTime(iso: string): string {
@@ -169,6 +171,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onDeleteRepositoryGroup,
   onRenameRepositoryGroup,
   onMoveWorkspaceToGroup,
+  userName = 'User',
+  userAvatar = '',
 }) => {
   const { t } = useLanguage();
   const hostOs = useHostOs();
@@ -581,6 +585,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       {isOpenState ? (
       <div className="flex-1 flex flex-col gap-3 overflow-hidden h-full">
+        {!isWindows ? (
+          <div className="px-3 pt-1 pb-2">
+            <span className="text-[17px] font-bold tracking-tight text-on-surface">Clutch</span>
+          </div>
+        ) : null}
         <div className="space-y-1 mb-4 px-1">
           <button
             data-testid="nav-new-chat"
@@ -593,7 +602,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             }`}
           >
             <LegacyIcon name={appMode === 'design' ? 'palette' : NAV_CONFIG.chat.icon} className="text-[18px] text-on-surface-variant" />
-            <span className="text-[13.5px]">{appMode === 'design' ? t('New Design') : t('New Chat')}</span>
+            <span className="text-[14px]">{appMode === 'design' ? t('New Design') : t('New Chat')}</span>
           </button>
 
         {appMode !== 'design' ? (
@@ -609,7 +618,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               }`}
             >
               <LegacyIcon name={NAV_CONFIG.agents.icon} className="text-[18px] text-on-surface-variant" />
-              <span className="text-[13.5px]">{t("AI Agents")}</span>
+              <span className="text-[14px]">{t("AI Agents")}</span>
             </button>
 
             {isMultiAgent ? (
@@ -624,7 +633,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 }`}
               >
                 <LegacyIcon name={NAV_CONFIG.workflows.icon} className="text-[18px] text-on-surface-variant" />
-                <span className="text-[13.5px]">{t("Workflows SOP")}</span>
+                <span className="text-[14px]">{t("Workflows SOP")}</span>
               </button>
             ) : null}
           </>
@@ -783,19 +792,33 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
         </div>
         ) : (
-        <div className="mt-auto pt-1 border-t border-outline-variant/50 min-w-0 px-1 space-y-1">
+        <div className="mt-auto pt-1.5 border-t border-outline-variant/50 min-w-0 px-1 space-y-1">
           <button
             data-testid="nav-settings"
             onClick={() => setView('settings')}
             aria-label={t('Settings')}
-            className={`w-full flex items-center gap-3 px-2 py-2 rounded-lg text-left transition-colors ${
+            className={`w-full flex items-center gap-2.5 px-2 py-1.5 rounded-lg text-left transition-colors group ${
               currentView === 'settings'
-                ? 'bg-surface-container-high/60 text-on-surface font-medium'
+                ? 'bg-surface-container-high/60 text-on-surface'
                 : 'text-on-surface hover:bg-surface-bright'
             }`}
           >
-            <LegacyIcon name={NAV_CONFIG.settings.icon} className="text-[18px] text-on-surface-variant" />
-            <span className="text-[13.5px]">{t('Settings')}</span>
+            {userAvatar ? (
+              <img
+                src={userAvatar}
+                alt=""
+                className="w-6 h-6 rounded-full object-cover flex-shrink-0"
+              />
+            ) : (
+              <span className="w-6 h-6 rounded-full bg-surface-container-highest text-on-surface-variant text-[10px] font-semibold flex items-center justify-center flex-shrink-0 uppercase">
+                {userName.trim().slice(0, 2) || 'U'}
+              </span>
+            )}
+            <span className="text-[13.5px] flex-1 truncate">{userName}</span>
+            <LegacyIcon
+              name={NAV_CONFIG.settings.icon}
+              className="text-[16px] text-on-surface-variant/70 opacity-0 group-hover:opacity-100 transition-opacity"
+            />
           </button>
           <div className="flex items-center gap-1 min-w-0 px-1">
             <UpdateBanner />

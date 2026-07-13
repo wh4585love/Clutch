@@ -1794,6 +1794,8 @@ function MainLayout() {
           isOpenState={sidebarOpen}
           setIsOpenState={setSidebarOpen}
           isMultiAgent={isMultiAgent}
+          userName={userName}
+          userAvatar={userAvatar}
           sessions={sessions}
           shellSnapshotRunIds={shellSnapshotRunIds}
           activeSessionId={sessionRunId}
