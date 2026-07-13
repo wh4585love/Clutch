@@ -45,6 +45,7 @@ export const Header: React.FC<HeaderProps> = ({
 
   return (
     <header
+      data-tauri-drag-region
       className="fixed top-0 right-0 h-[48px] bg-background/85 backdrop-blur-md border-b border-outline-variant z-40 flex items-center justify-between pr-2 select-none transition-[left] duration-200 ease-out"
       style={{
         left: sidebarOpen ? SIDEBAR_EXPANDED_WIDTH_PX : SIDEBAR_COLLAPSED_WIDTH_PX,
