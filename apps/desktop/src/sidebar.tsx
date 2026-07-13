@@ -15,6 +15,7 @@ import {
   SidebarToggleWindows,
 } from './platform/chrome/sidebar';
 import { isWindowsHost, useHostOs } from './platform/hostOs';
+import { beginWindowDrag } from './platform/windowDrag';
 import { sidecarFetch, sidecarHttpUrl } from './services/sidecarUrl';
 
 const DESIGN_THUMB_PX = 40;
@@ -450,12 +451,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
                         ? `flex items-start gap-2.5 px-2 py-2 ${
                             isActiveSession
                               ? 'bg-surface-bright shadow-sm border-outline-variant/40'
-                              : 'border-transparent hover:bg-surface-bright'
+                              : 'border-transparent hover:bg-surface-container-high/40'
                           }`
                         : `group flex items-center justify-between px-2 py-[7px] ${
                             isActiveSession
                               ? 'bg-surface-container-high/60 text-on-surface border-transparent'
-                              : 'border-transparent text-on-surface-variant hover:bg-surface-bright hover:text-on-surface'
+                              : 'border-transparent text-on-surface-variant hover:bg-surface-container-high/40 hover:text-on-surface'
                           }`
                     }`}
                   >
@@ -587,7 +588,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       <div className="flex-1 flex flex-col gap-3 overflow-hidden h-full">
         {!isWindows ? (
           // pt-7 clears the macOS overlay traffic lights (hidden native title bar)
-          <div data-tauri-drag-region className="px-3 pt-7 pb-2">
+          <div data-tauri-drag-region onMouseDown={beginWindowDrag} className="px-3 pt-7 pb-2">
             <span data-tauri-drag-region className="text-[17px] font-bold tracking-tight text-on-surface">Clutch</span>
           </div>
         ) : null}
@@ -599,7 +600,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             className={`w-full flex items-center gap-3 px-2 py-2 rounded-lg transition-colors text-left ${
               currentView === 'chat'
                 ? 'bg-surface-container-high/60 text-on-surface font-medium'
-                : 'text-on-surface hover:bg-surface-bright'
+                : 'text-on-surface hover:bg-surface-container-high/40'
             }`}
           >
             <LegacyIcon name={appMode === 'design' ? 'palette' : NAV_CONFIG.chat.icon} className="text-[18px] text-on-surface-variant" />
@@ -615,7 +616,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               className={`w-full flex items-center gap-3 px-2 py-2 rounded-lg transition-colors text-left ${
                 currentView === 'agents'
                   ? 'bg-surface-container-high/60 text-on-surface font-medium'
-                  : 'text-on-surface hover:bg-surface-bright'
+                  : 'text-on-surface hover:bg-surface-container-high/40'
               }`}
             >
               <LegacyIcon name={NAV_CONFIG.agents.icon} className="text-[18px] text-on-surface-variant" />
@@ -630,7 +631,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 className={`w-full flex items-center gap-3 px-2 py-2 rounded-lg transition-colors text-left ${
                   currentView === 'workflows'
                     ? 'bg-surface-container-high/60 text-on-surface font-medium'
-                    : 'text-on-surface hover:bg-surface-bright'
+                    : 'text-on-surface hover:bg-surface-container-high/40'
                 }`}
               >
                 <LegacyIcon name={NAV_CONFIG.workflows.icon} className="text-[18px] text-on-surface-variant" />
@@ -705,7 +706,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   onClick={() => onToggleRepositoryGroup?.(group.id, !groupCollapsed)}
                   onContextMenu={(e) => handleContextMenu(e, 'group', group.id)}
                   aria-label={group.name}
-                  className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-left hover:bg-surface-bright transition-colors"
+                  className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-left hover:bg-surface-container-high/40 transition-colors"
                 >
                   <LegacyIcon name={groupCollapsed ? "folder_special" : "folder_special_open"} className="text-[16px] text-on-surface-variant" />
                   <span className="text-[12.5px] font-medium text-on-surface-variant truncate">
@@ -742,7 +743,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   data-drop-group-id="__default__"
                   onClick={() => setDefaultGroupCollapsed(!defaultGroupCollapsed)}
                   aria-label={t('Default Group')}
-                  className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-left hover:bg-surface-bright transition-colors"
+                  className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-left hover:bg-surface-container-high/40 transition-colors"
                 >
                   <LegacyIcon name={defaultGroupCollapsed ? "folder_special" : "folder_special_open"} className="text-[16px] text-on-surface-variant" />
                   <span className="text-[12.5px] font-medium text-on-surface-variant truncate">
@@ -782,7 +783,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               onClick={() => setView('settings')}
               aria-label={t('Settings')}
               className={`flex-1 min-w-0 flex items-center justify-center gap-2 px-1.5 py-1 rounded-lg text-center transition-colors ${
-                currentView === 'settings' ? 'bg-surface-container-high/60 text-on-surface font-medium' : 'text-on-surface hover:bg-surface-bright'
+                currentView === 'settings' ? 'bg-surface-container-high/60 text-on-surface font-medium' : 'text-on-surface hover:bg-surface-container-high/40'
               }`}
             >
               <LegacyIcon name={NAV_CONFIG.settings.icon} className="text-[18px] shrink-0 text-on-surface-variant" />
@@ -801,7 +802,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             className={`w-full flex items-center gap-2.5 px-2 py-1.5 rounded-lg text-left transition-colors group ${
               currentView === 'settings'
                 ? 'bg-surface-container-high/60 text-on-surface'
-                : 'text-on-surface hover:bg-surface-bright'
+                : 'text-on-surface hover:bg-surface-container-high/40'
             }`}
           >
             {userAvatar ? (
