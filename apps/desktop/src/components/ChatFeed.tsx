@@ -456,6 +456,38 @@ function ChatBubbleImage({ src, alt }: { src: string; alt: string }) {
   );
 }
 
+/** Codex-style fenced code block: gray rounded card, language label + copy button. */
+function ChatCodeBlock({ lang, code }: { lang: string; code: string }) {
+  const { t } = useLanguage();
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = () => {
+    void navigator.clipboard.writeText(code).then(() => {
+      setCopied(true);
+      window.setTimeout(() => setCopied(false), 1500);
+    });
+  };
+
+  return (
+    <div className="my-3 rounded-xl bg-surface-container-low/80 overflow-hidden select-text">
+      <div className="flex items-center justify-between pl-4 pr-2 pt-2">
+        <span className="text-[11.5px] font-mono text-on-surface-variant">{lang || 'text'}</span>
+        <button
+          type="button"
+          onClick={handleCopy}
+          className="flex items-center gap-1 px-1.5 py-1 rounded-md text-on-surface-variant hover:text-on-surface hover:bg-surface-container-high/50 transition-colors"
+          title={copied ? t('Copied') : t('Copy code')}
+          aria-label={copied ? t('Copied') : t('Copy code')}
+        >
+          <LegacyIcon name={copied ? 'check' : 'content_copy'} className="text-[13px]" />
+          {copied ? <span className="text-[10.5px]">{t('Copied')}</span> : null}
+        </button>
+      </div>
+      <pre className="px-4 pb-3.5 pt-1.5 overflow-x-auto text-[12.5px] leading-relaxed font-mono text-on-surface">{code}</pre>
+    </div>
+  );
+}
+
 function renderMarkdown(text: string): React.ReactNode {
   if (!text) return null;
 
@@ -553,6 +585,20 @@ function renderMarkdown(text: string): React.ReactNode {
     // If we were in blockquote but the current line is not, flush the blockquote
     if (inBlockquote) {
       flushBlockquote(i);
+    }
+
+    // Handle fenced code blocks: ```lang ... ```
+    if (trimmed.startsWith('```')) {
+      const lang = trimmed.slice(3).trim();
+      const codeLines: string[] = [];
+      let j = i + 1;
+      while (j < lines.length && !lines[j].trim().startsWith('```')) {
+        codeLines.push(lines[j]);
+        j++;
+      }
+      elements.push(<ChatCodeBlock key={`code-${i}`} lang={lang} code={codeLines.join('\n')} />);
+      i = j; // skip past closing fence (or EOF if unclosed)
+      continue;
     }
 
     // Handle markdown images: ![alt](url)

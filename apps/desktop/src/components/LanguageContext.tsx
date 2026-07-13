@@ -986,6 +986,7 @@ const zhTranslations: Record<string, string> = {
   "Auto-configure": "自动配置",
   "Show install guide": "显示安装指南",
   "Copy command": "复制命令",
+  "Copy code": "复制代码",
   "Copied": "已复制",
 
   // Agent detail (remaining)
