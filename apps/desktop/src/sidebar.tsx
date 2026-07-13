@@ -386,7 +386,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <div
           onContextMenu={(e) => handleContextMenu(e, 'workspace', repo.id)}
           className={`flex items-center justify-between px-2 py-2 rounded-lg transition-colors group ${
-            isActiveWorkspace ? 'bg-surface-container-high/60' : 'hover:bg-surface-container-high/35'
+            isActiveWorkspace ? 'bg-surface-container-highest' : 'hover:bg-surface-container-highest/45'
           } ${isDragging && pointerDragActive ? 'opacity-50 ring-1 ring-primary/30' : ''}`}
         >
           <div
@@ -451,12 +451,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
                         ? `flex items-start gap-2.5 px-2 py-2 ${
                             isActiveSession
                               ? 'bg-surface-bright shadow-sm border-outline-variant/40'
-                              : 'border-transparent hover:bg-surface-container-high/40'
+                              : 'border-transparent hover:bg-surface-container-highest/45'
                           }`
                         : `group flex items-center justify-between px-2 py-2 ${
                             isActiveSession
-                              ? 'bg-surface-container-high/60 text-on-surface border-transparent'
-                              : 'border-transparent text-on-surface/75 hover:bg-surface-container-high/40 hover:text-on-surface'
+                              ? 'bg-surface-container-highest text-on-surface border-transparent'
+                              : 'border-transparent text-on-surface/75 hover:bg-surface-container-highest/45 hover:text-on-surface'
                           }`
                     }`}
                   >
@@ -568,7 +568,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   return (
     <>
     <aside
-      className={`fixed h-screen left-0 top-0 border-r border-outline-variant bg-surface flex flex-col transition-[width] duration-200 ease-out z-50 ${
+      className={`fixed h-screen left-0 top-0 border-r border-outline-variant bg-surface-dim flex flex-col transition-[width] duration-200 ease-out z-50 ${
         isOpenState ? 'px-4 pt-5 pb-3' : isWindows ? 'p-2' : 'px-1.5 pb-3'
       }`}
       style={{
@@ -599,8 +599,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
             aria-label={appMode === 'design' ? t('New Design') : t('New Chat')}
             className={`w-full flex items-center gap-3 px-2 py-2 rounded-lg transition-colors text-left ${
               currentView === 'chat'
-                ? 'bg-surface-container-high/60 text-on-surface font-medium'
-                : 'text-on-surface hover:bg-surface-container-high/40'
+                ? 'bg-surface-container-highest text-on-surface font-medium'
+                : 'text-on-surface hover:bg-surface-container-highest/45'
             }`}
           >
             <LegacyIcon name={appMode === 'design' ? 'palette' : NAV_CONFIG.chat.icon} className="text-[18px] text-on-surface-variant" />
@@ -615,8 +615,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
               aria-label={t('AI Agents')}
               className={`w-full flex items-center gap-3 px-2 py-2 rounded-lg transition-colors text-left ${
                 currentView === 'agents'
-                  ? 'bg-surface-container-high/60 text-on-surface font-medium'
-                  : 'text-on-surface hover:bg-surface-container-high/40'
+                  ? 'bg-surface-container-highest text-on-surface font-medium'
+                  : 'text-on-surface hover:bg-surface-container-highest/45'
               }`}
             >
               <LegacyIcon name={NAV_CONFIG.agents.icon} className="text-[18px] text-on-surface-variant" />
@@ -630,8 +630,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 aria-label={t('Workflows SOP')}
                 className={`w-full flex items-center gap-3 px-2 py-2 rounded-lg transition-colors text-left ${
                   currentView === 'workflows'
-                    ? 'bg-surface-container-high/60 text-on-surface font-medium'
-                    : 'text-on-surface hover:bg-surface-container-high/40'
+                    ? 'bg-surface-container-highest text-on-surface font-medium'
+                    : 'text-on-surface hover:bg-surface-container-highest/45'
                 }`}
               >
                 <LegacyIcon name={NAV_CONFIG.workflows.icon} className="text-[18px] text-on-surface-variant" />
@@ -674,7 +674,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           value={repoFilter}
           onChange={(event) => setRepoFilter(event.target.value)}
           placeholder={t('Filter projects')}
-          className="mx-1 mb-1 w-[calc(100%-0.5rem)] rounded-lg bg-surface-container-low/70 px-2.5 py-1.5 text-[12px] text-on-surface placeholder:text-on-surface-variant/60 focus:outline-none focus:bg-surface-container-low"
+          className="mx-1 mb-1 w-[calc(100%-0.5rem)] rounded-lg bg-surface-container-highest/40 px-2.5 py-1.5 text-[12px] text-on-surface placeholder:text-on-surface-variant/60 focus:outline-none focus:bg-surface-container-highest/60"
         />
 
         <nav className="flex-1 sidebar-scroll overflow-y-auto space-y-2 px-1 pb-2">
@@ -706,7 +706,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   onClick={() => onToggleRepositoryGroup?.(group.id, !groupCollapsed)}
                   onContextMenu={(e) => handleContextMenu(e, 'group', group.id)}
                   aria-label={group.name}
-                  className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-left hover:bg-surface-container-high/40 transition-colors"
+                  className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-left hover:bg-surface-container-highest/45 transition-colors"
                 >
                   <LegacyIcon name={groupCollapsed ? "folder_special" : "folder_special_open"} className="text-[16px] text-on-surface-variant" />
                   <span className="text-[12.5px] font-medium text-on-surface-variant truncate">
@@ -745,7 +745,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     data-drop-group-id="__default__"
                     onClick={() => setDefaultGroupCollapsed(!defaultGroupCollapsed)}
                     aria-label={t('Default Group')}
-                    className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-left hover:bg-surface-container-high/40 transition-colors"
+                    className="w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-left hover:bg-surface-container-highest/45 transition-colors"
                   >
                     <LegacyIcon name={defaultGroupCollapsed ? "folder_special" : "folder_special_open"} className="text-[16px] text-on-surface-variant" />
                     <span className="text-[12.5px] font-medium text-on-surface-variant truncate">
@@ -786,7 +786,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               onClick={() => setView('settings')}
               aria-label={t('Settings')}
               className={`flex-1 min-w-0 flex items-center justify-center gap-2 px-1.5 py-1 rounded-lg text-center transition-colors ${
-                currentView === 'settings' ? 'bg-surface-container-high/60 text-on-surface font-medium' : 'text-on-surface hover:bg-surface-container-high/40'
+                currentView === 'settings' ? 'bg-surface-container-highest text-on-surface font-medium' : 'text-on-surface hover:bg-surface-container-highest/45'
               }`}
             >
               <LegacyIcon name={NAV_CONFIG.settings.icon} className="text-[18px] shrink-0 text-on-surface-variant" />
@@ -804,8 +804,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
             aria-label={t('Settings')}
             className={`w-full flex items-center gap-2.5 px-2 py-1.5 rounded-lg text-left transition-colors group ${
               currentView === 'settings'
-                ? 'bg-surface-container-high/60 text-on-surface'
-                : 'text-on-surface hover:bg-surface-container-high/40'
+                ? 'bg-surface-container-highest text-on-surface'
+                : 'text-on-surface hover:bg-surface-container-highest/45'
             }`}
           >
             {userAvatar ? (
