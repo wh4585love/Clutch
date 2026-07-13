@@ -31,6 +31,7 @@ import {
 } from './services/themeApi';
 import { DEFAULT_FONT_SIZE, type AppFontSize } from './services/fontSizePreference';
 import { isWindowsHost, useHostOs } from './platform/hostOs';
+import { installTitlebarDrag } from './platform/windowDrag';
 import { LanguageProvider, useLanguage } from './components/LanguageContext';
 import { OnboardingWizard } from './components/onboarding/OnboardingWizard';
 import { CONTENT_TOP_WITH_BANNER, SIDEBAR_COLLAPSED_WIDTH_PX, SIDEBAR_EXPANDED_WIDTH_PX, CHROME_PANEL_TOGGLE_TOP_CSS, CHROME_PANEL_TOGGLE_HALF_PX } from './constants/layout';
@@ -1731,6 +1732,9 @@ function MainLayout() {
       }
     };
   }, [themeVars]);
+
+  // macOS overlay title bar: top strip drags the window (Codex-style).
+  useEffect(() => installTitlebarDrag(), []);
 
   const activeSession = sessions.find(s => s.run_id === sessionRunId);
   const sessionTitle = activeSession ? (activeSession.title || activeSession.workflow_id || activeSession.run_id) : '';
